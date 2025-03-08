@@ -1,29 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { debateService } from "@/services/debateService";
+import { motion } from "framer-motion";
 
 interface DebateContextProps {
   topic: string;
 }
-
-// Mock context data for topics
-const MOCK_CONTEXTS = {
-  "Is AI a threat to humanity?": 
-    "This debate explores the potential risks of advanced artificial intelligence systems. The question involves considerations of technological capabilities, ethical frameworks, regulatory approaches, and philosophical questions about consciousness and control. Key areas of focus include existential risks, job displacement, autonomous weapons, privacy concerns, and bias in AI systems.",
-  
-  "Should cryptocurrency be regulated?": 
-    "This debate examines the role of government regulation in cryptocurrency markets. Topics include concerns about market volatility, consumer protection, financial stability, crime prevention, environmental impact, and innovation. The debate touches on economics, law, technology, and governance.",
-  
-  "Is climate change the biggest threat facing humanity?": 
-    "This debate explores the severity and urgency of climate change relative to other global challenges. Areas of discussion include scientific consensus, economic impacts, health effects, national security, technological solutions, and intergenerational ethics. The topic spans science, economics, politics, and ethics.",
-  
-  "Should universal basic income be implemented?": 
-    "This debate examines the potential benefits and drawbacks of providing all citizens with a regular stipend regardless of employment status. Topics include economic feasibility, social welfare, labor market effects, automation responses, wealth inequality, and human dignity. The discussion involves economics, social policy, politics, and philosophy.",
-  
-  "Is space exploration worth the cost?": 
-    "This debate evaluates whether the financial investment in space exploration yields sufficient benefits to humanity. Areas of focus include scientific advancement, technological innovation, resource utilization, national prestige, existential risk mitigation, and opportunity costs. The topic spans economics, science, technology, and ethics."
-};
 
 export function DebateContext({ topic }: DebateContextProps) {
   const [contextInfo, setContextInfo] = useState<string>("");
@@ -34,48 +17,106 @@ export function DebateContext({ topic }: DebateContextProps) {
     
     setIsLoading(true);
     
-    // Use mock data directly instead of API call
-    setTimeout(() => {
-      const mockContext = MOCK_CONTEXTS[topic] || 
-        `This is a multi-perspective analysis of "${topic}". The topic has significant implications across various domains and can be examined from multiple viewpoints to provide a comprehensive understanding.`;
-      
-      setContextInfo(mockContext);
-      setIsLoading(false);
-    }, 800);
+    // Use the debateService to get context for the topic
+    const fetchContext = async () => {
+      try {
+        const context = await debateService.getTopicContext(topic);
+        setContextInfo(context);
+      } catch (error) {
+        console.error("Error fetching topic context:", error);
+        setContextInfo(`This debate explores multiple perspectives on "${topic}".`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
+    fetchContext();
   }, [topic]);
 
   return (
-    <div className={`space-y-5 ${isLoading ? "animate-pulse" : ""}`}>
-      <div className="flex items-center">
-        <span className="w-2 h-2 bg-[#E71D73] rounded-full mr-2"></span>
-        <h3 className="text-lg font-medium text-gray-900 flex items-center">
-          <span className="mr-2 text-[#E71D73] inline-block w-5 h-5 flex items-center justify-center">
-            <span className="text-sm">📚</span>
+    <div className="h-full flex flex-col animate-fadeIn">
+      <motion.div 
+        className="flex items-center"
+        initial={{ x: -20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+          <span className="mr-2 text-[#E71D73] inline-block w-6 h-6 flex items-center justify-center">
+            <span className="text-lg">📚</span>
           </span>
           Topic Overview
         </h3>
-      </div>
+      </motion.div>
       
-      <div className="bg-gray-50 rounded-xl border border-gray-200 p-5 relative group transition-all duration-300 hover:shadow-md">
+      <motion.div 
+        className={`mt-4 flex-grow bg-white rounded-xl border border-gray-200 p-6 relative group transition-all duration-300 hover:shadow-md hover:border-[#E71D73]/30 ${isLoading ? "animate-pulse" : ""}`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         {isLoading ? (
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div className="space-y-3">
+            <div className="h-5 bg-gray-200 rounded-full w-3/4"></div>
+            <div className="h-5 bg-gray-200 rounded-full"></div>
+            <div className="h-5 bg-gray-200 rounded-full w-5/6"></div>
+            <div className="h-5 bg-gray-200 rounded-full w-2/3"></div>
           </div>
         ) : (
-          <div className="relative">
-            <div className="absolute top-[-3px] left-[-15px] text-[#E71D73]/30">
-              <span className="text-3xl">💻</span>
+          <motion.div 
+            className="relative h-full flex flex-col"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Decorative elements */}
+            <motion.div 
+              className="absolute -top-2 -left-2 text-[#E71D73]/20 transform rotate-12"
+              animate={{ rotate: [12, 20, 12, 5, 12] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <span className="text-3xl">💡</span>
+            </motion.div>
+            <motion.div 
+              className="absolute -bottom-2 -right-2 text-[#E71D73]/20 transform -rotate-12"
+              animate={{ rotate: [-12, -5, -12, -20, -12] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <span className="text-3xl">🔍</span>
+            </motion.div>
+            
+            {/* Main content */}
+            <div className="relative z-10 flex-grow">
+              <div className="pl-8 pt-1">
+                <motion.p 
+                  className="text-gray-700 whitespace-pre-wrap leading-relaxed mb-2 overflow-auto max-h-[200px] pr-2"
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  {contextInfo}
+                </motion.p>
+                <motion.div 
+                  className="mt-auto pt-3 border-t border-gray-100"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <div className="flex items-center text-[#E71D73]/70 text-sm">
+                    <span className="w-4 h-4 flex items-center justify-center mr-2 bg-[#E71D73]/10 rounded-full">
+                      <span className="text-xs">i</span>
+                    </span>
+                    <span className="italic">Context provided to help frame the debate</span>
+                  </div>
+                </motion.div>
+              </div>
             </div>
-            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed pl-6">
-              {contextInfo}
-            </p>
-            <div className="absolute -bottom-2 -right-2 w-36 h-36 bg-[#E71D73]/5 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none"></div>
-          </div>
+            
+            {/* Background gradient effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#E71D73]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl pointer-events-none"></div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 } 
