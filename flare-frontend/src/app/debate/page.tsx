@@ -38,7 +38,7 @@ export default function DebatePage() {
   const [customTopic, setCustomTopic] = useState<string>("");
   const [debaters, setDebaters] = useState<Debater[]>([]);
   const [isResearching, setIsResearching] = useState<boolean>(false);
-  const [currentRound, setCurrentRound] = useState<number>(0);
+  const [currentRound, setCurrentRound] = useState<number>(0); 
   
   // Follow-up question state
   const [followUpQuestion, setFollowUpQuestion] = useState<string>("");
