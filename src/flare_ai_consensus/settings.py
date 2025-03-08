@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Literal, TypedDict
 
@@ -117,5 +118,7 @@ class Settings(BaseSettings):
 
 
 # Create a global settings instance
-settings = Settings()
+settings = Settings(
+    open_router_api_key=os.environ["OPENROUTER_API_KEY"],
+)
 logger.debug("settings initialized", settings=settings.model_dump())
