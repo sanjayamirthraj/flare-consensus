@@ -305,6 +305,32 @@ export default function DebatePage() {
         }}
       ></motion.div>
       
+      {/* New animated particles */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {[...Array(15)].map((_, i) => (
+          <motion.div 
+            key={i}
+            className="absolute w-1 h-1 rounded-full bg-[#E71D73]/40"
+            style={{ 
+              left: `${Math.random() * 100}%`, 
+              top: `${Math.random() * 100}%` 
+            }}
+            animate={{
+              scale: [0.8, 1.2, 0.8],
+              opacity: [0.4, 0.7, 0.4],
+              x: [0, Math.random() * 50 - 25, 0],
+              y: [0, Math.random() * 50 - 25, 0],
+            }}
+            transition={{
+              duration: 4 + Math.random() * 6,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+      
       {/* Header */}
       <header className="border-b border-gray-100 p-4 bg-white/80 backdrop-blur-sm sticky top-0 z-10 shadow-sm animate-fadeIn">
         <div className="container mx-auto flex justify-between items-center">
@@ -325,7 +351,19 @@ export default function DebatePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <span className="text-[#E71D73]">AI</span> Debate: {getCurrentTopic() || "Select a Topic"}
+          <span className="text-[#E71D73] relative inline-block">
+            AI
+            <span className="absolute inset-0 bg-[#E71D73]/10 blur-sm -z-10 rounded-lg animate-pulse"></span>
+          </span> 
+          <span className="relative">
+            Debate: {getCurrentTopic() || "Select a Topic"}
+            <motion.div 
+              className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-[#E71D73] to-transparent"
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 1, delay: 0.5 }}
+            />
+          </span>
         </motion.h1>
         
         {/* Topic Selection Section - Moved to top */}
@@ -339,10 +377,20 @@ export default function DebatePage() {
             {/* Topic Selection */}
             <motion.div 
               className="lg:col-span-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:border-[#E71D73]/30"
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, boxShadow: "0 4px 20px rgba(231, 29, 115, 0.1)" }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <h2 className="text-xl font-bold mb-5 text-gray-800">Select Debate Topic</h2>
+              <h2 className="text-xl font-bold mb-5 text-gray-800 flex items-center">
+                <span className="text-[#E71D73] mr-2">
+                  <motion.div
+                    animate={{ rotate: [0, 10, 0, -10, 0] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    🔍
+                  </motion.div>
+                </span>
+                Select Debate Topic
+              </h2>
               
               <DebateTopicSelector
                 predefinedTopics={predefinedTopics}
@@ -360,15 +408,27 @@ export default function DebatePage() {
                 <Button 
                   onClick={handleStartResearch}
                   disabled={!getCurrentTopic() || isResearching}
-                  className="w-full bg-[#E71D73] hover:bg-[#D61A6A] text-white glow-button group transition-all"
+                  className="w-full bg-[#E71D73] hover:bg-[#D61A6A] text-white glow-button group transition-all relative overflow-hidden"
                 >
+                  <motion.span 
+                    className="absolute inset-0 bg-gradient-to-r from-[#E71D73]/0 via-[#E71D73]/40 to-[#E71D73]/0 opacity-0 group-hover:opacity-100"
+                    animate={{
+                      x: ['-100%', '100%'],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      repeatDelay: 0.5
+                    }}
+                  />
                   {isResearching ? (
                     <span className="flex items-center justify-center">
                       <span className="mr-2 inline-block w-2 h-2 bg-white rounded-full animate-ping"></span>
                       Researching...
                     </span>
                   ) : (
-                    "Start Research"
+                    <span className="relative z-10">Start Research</span>
                   )}
                 </Button>
               </motion.div>
@@ -379,10 +439,10 @@ export default function DebatePage() {
               {getCurrentTopic() ? (
                 <DebateContext topic={getCurrentTopic()} />
               ) : (
-                <div className="h-full bg-white border border-gray-200 rounded-lg p-6 flex items-center justify-center text-center">
+                <div className="h-full bg-white border border-gray-200 rounded-lg p-6 flex items-center justify-center text-center bg-gradient-to-br from-white to-[#E71D73]/5">
                   <div>
                     <motion.div 
-                      className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#E71D73]/10 flex items-center justify-center"
+                      className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#E71D73]/10 flex items-center justify-center relative"
                       animate={{ y: [0, -10, 0] }}
                       transition={{ 
                         duration: 2,
@@ -391,6 +451,15 @@ export default function DebatePage() {
                       }}
                     >
                       <span className="text-2xl">📚</span>
+                      <motion.div 
+                        className="absolute -inset-1 border border-[#E71D73]/30 rounded-full"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ 
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      />
                     </motion.div>
                     <h3 className="text-xl font-medium text-gray-800 mb-2">Topic Overview</h3>
                     <p className="text-gray-500">Select a topic to see its overview and context</p>
@@ -417,7 +486,17 @@ export default function DebatePage() {
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
                 <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#E71D73]/10 border border-[#E71D73]/20 text-[#E71D73] text-sm font-medium animate-fadeIn">
-                  <span className="mr-2 inline-block w-3 h-3 rounded-full bg-[#E71D73] animate-pulse"></span>
+                  <motion.span 
+                    className="mr-2 inline-block w-3 h-3 rounded-full bg-[#E71D73]"
+                    animate={{ 
+                      boxShadow: ["0 0 0px rgba(231, 29, 115, 0.3)", "0 0 8px rgba(231, 29, 115, 0.8)", "0 0 0px rgba(231, 29, 115, 0.3)"]
+                    }}
+                    transition={{ 
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
                   Research Round {currentRound}
                 </div>
               </motion.div>
@@ -448,7 +527,10 @@ export default function DebatePage() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 >
-                  <h3 className="text-xl font-semibold mb-4 text-gray-800">Ask a Follow-up Question</h3>
+                  <h3 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+                    <span className="text-[#E71D73] mr-2">💬</span>
+                    Ask a Follow-up Question
+                  </h3>
                   <Textarea
                     placeholder="Ask a follow-up question to all debaters..."
                     value={followUpQuestion}
@@ -488,24 +570,49 @@ export default function DebatePage() {
                 </motion.div>
               ) : (
                 <div className="flex justify-center gap-5 mb-10">
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <motion.div 
+                    whileHover={{ scale: 1.05 }} 
+                    whileTap={{ scale: 0.95 }}
+                    className="relative"
+                  >
+                    <span className="absolute inset-0 rounded-md bg-[#E71D73]/10 -z-10 filter blur-md" />
                     <Button 
                       variant="outline" 
                       onClick={() => setShowFollowUpForm(true)}
                       disabled={debaters.some(d => d.isLoading)}
-                      className="border-[#E71D73]/30 text-[#E71D73] hover:bg-[#E71D73]/5 hover:border-[#E71D73] px-6"
+                      className="border-[#E71D73]/30 text-[#E71D73] hover:bg-[#E71D73]/5 hover:border-[#E71D73] px-6 relative overflow-hidden group"
                     >
+                      <motion.span 
+                        className="absolute inset-0 bg-[#E71D73]/5 -z-10"
+                        initial={{ y: "100%" }}
+                        whileHover={{ y: "0%" }}
+                        transition={{ duration: 0.2 }}
+                      />
                       <span className="mr-2">💬</span> Ask Follow-up
                     </Button>
                   </motion.div>
                   
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <motion.div 
+                    whileHover={{ scale: 1.05 }} 
+                    whileTap={{ scale: 0.95 }}
+                    className="relative"
+                  >
+                    <span className="absolute inset-0 rounded-md bg-[#E71D73]/20 -z-10 filter blur-md" />
                     <Button 
                       onClick={handleNewRound}
                       disabled={debaters.some(d => d.isLoading)}
                       className="bg-[#E71D73] hover:bg-[#D61A6A] text-white glow-button px-6"
                     >
-                      <span className="mr-2">🔄</span> Next Round
+                      <span className="mr-2">
+                        <motion.span
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          className="inline-block"
+                        >
+                          🔄
+                        </motion.span>
+                      </span> 
+                      Next Round
                     </Button>
                   </motion.div>
                 </div>
@@ -513,14 +620,14 @@ export default function DebatePage() {
             </>
           ) : (
             <motion.div 
-              className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 p-10 text-center shadow-sm hover:shadow-md transition-all duration-300"
+              className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 p-10 text-center shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-white to-[#E71D73]/5"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.4 }}
               whileHover={{ scale: 1.02 }}
             >
               <motion.div 
-                className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#E71D73]/10 flex items-center justify-center"
+                className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#E71D73]/10 flex items-center justify-center relative overflow-hidden"
                 animate={{ 
                   scale: [1, 1.1, 1],
                   rotate: [0, 5, 0, -5, 0]
@@ -532,6 +639,15 @@ export default function DebatePage() {
                 }}
               >
                 <span className="text-4xl">🤔</span>
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-t from-[#E71D73]/30 to-transparent"
+                  animate={{ y: ["120%", "90%", "120%"] }}
+                  transition={{ 
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
               </motion.div>
               <h3 className="text-2xl font-semibold mb-3 text-gray-800">Start your AI Debate</h3>
               <p className="text-gray-600 mb-8 max-w-md mx-auto">
@@ -559,7 +675,7 @@ export default function DebatePage() {
       {/* Footer */}
       <footer className="border-t border-gray-100 py-6 mt-12 text-center text-gray-500 text-sm bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto">
-          <p>© {new Date().getFullYear()} Flare Consensus • AI-Powered Debate Platform</p>
+          <p>© {new Date().getFullYear()} <span className="text-[#E71D73]">Flare Consensus</span> • AI-Powered Debate Platform</p>
         </div>
       </footer>
     </div>
