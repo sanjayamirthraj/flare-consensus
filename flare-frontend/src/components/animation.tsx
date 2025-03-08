@@ -118,7 +118,7 @@ export default function PerspectiveAnimation() {
       </div>
 
       {/* Example topic */}
-      <div className="mt-8 p-6 rounded-lg bg-white dark:bg-gray-800 shadow-md">
+      {/* <div className="mt-8 p-6 rounded-lg bg-white dark:bg-gray-800 shadow-md">
         <h3 className="text-xl font-semibold mb-4">Example Topic: Climate Policy</h3>
         <div className="flex flex-col md:flex-row gap-4">
           {perspectives.map((perspective) => (
@@ -152,7 +152,7 @@ export default function PerspectiveAnimation() {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }
