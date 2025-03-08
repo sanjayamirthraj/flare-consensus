@@ -1,8 +1,7 @@
 "use client";
 
-import { Avatar } from "@/components/ui/avatar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { ExternalLink, MessageSquare, Bot, AlertCircle, CPU } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExternalLink, BookOpenCheck } from "lucide-react";
 
 interface Source {
   title: string;
@@ -29,7 +28,7 @@ interface AIDebaterProps {
 }
 
 export function AIDebater({ debater }: AIDebaterProps) {
-  // Generate avatar for each debater
+  // Generate avatar with just a letter/number instead of an icon
   const getDebaterAvatar = (id: number, stance: string) => {
     const colors = {
       "For": ["bg-[#E71D73]", "border-[#E71D73]/70"],
@@ -37,10 +36,12 @@ export function AIDebater({ debater }: AIDebaterProps) {
       "Neutral": ["bg-[#B71761]", "border-[#B71761]/70"]
     };
     
-    const modelIcons = {
-      "GPT-4": <CPU size={20} className="text-white" />,
-      "Claude": <Bot size={20} className="text-white" />,
-      "PaLM 2": <AlertCircle size={20} className="text-white" />
+    // Get first letter of model or use id as fallback
+    const getAvatarContent = () => {
+      if (debater.model) {
+        return debater.model.charAt(0);
+      }
+      return id.toString();
     };
     
     const [bg, border] = colors[stance as keyof typeof colors] || ["bg-[#E71D73]", "border-[#E71D73]/70"];
@@ -49,7 +50,7 @@ export function AIDebater({ debater }: AIDebaterProps) {
       <div className={`relative group`}>
         <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${bg} border-2 ${border} shadow-sm`}>
           <span className="text-white font-bold text-lg">
-            {debater.model && modelIcons[debater.model as keyof typeof modelIcons] || id}
+            {getAvatarContent()}
           </span>
         </div>
         <div className="absolute -inset-0.5 bg-[#E71D73] opacity-0 blur group-hover:opacity-10 transition duration-500 rounded-xl"></div>
@@ -58,80 +59,88 @@ export function AIDebater({ debater }: AIDebaterProps) {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
-        {getDebaterAvatar(debater.id, debater.stance)}
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900">{debater.name}</h3>
-          <p className="text-gray-500">
-            {debater.stance} Perspective 
-            {debater.model && <span className="ml-2 opacity-80">• {debater.model}</span>}
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        {debater.responses.map((response, index) => (
-          <Card key={index} className={`bg-white border-gray-200 ${response.isLoading ? "animate-pulse" : ""} transition-all duration-500 hover:shadow-md group overflow-hidden`}>
-            <CardHeader className="pb-2 border-b border-gray-100 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm text-gray-700 flex items-center">
-                <MessageSquare size={14} className="mr-2 text-[#E71D73] opacity-70" /> 
-                Round {index + 1}
-              </CardTitle>
-              <div className="px-2 py-0.5 rounded-full bg-[#E71D73]/10 text-[#E71D73] text-xs border border-[#E71D73]/20">
-                {debater.stance}
-              </div>
-            </CardHeader>
-            
-            <CardContent className="text-gray-700 pt-5 relative">
-              <p className="whitespace-pre-wrap leading-relaxed">
-                {response.text}
-              </p>
-              
-              {response.isLoading && (
-                <div className="mt-4 flex justify-center">
-                  <div className="h-2 w-2 bg-[#E71D73] rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                  <div className="mx-1 h-2 w-2 bg-[#E71D73] rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                  <div className="h-2 w-2 bg-[#E71D73] rounded-full animate-bounce"></div>
-                </div>
-              )}
-              
-              <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#E71D73]/5 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none"></div>
-            </CardContent>
-            
-            {!response.isLoading && response.sources && response.sources.length > 0 && (
-              <CardFooter className="border-t border-gray-100 pt-4 flex-col items-start relative">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                  <span className="w-1.5 h-1.5 bg-[#E71D73] rounded-full mr-2"></span>
-                  Sources
-                </h4>
-                <ul className="space-y-2 w-full">
-                  {response.sources.map((source, idx) => (
-                    <li key={idx} className="text-sm group/source">
-                      <a 
-                        href={source.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center text-[#E71D73] hover:text-[#CF196A] transition-colors"
-                      >
-                        <ExternalLink size={12} className="mr-2 opacity-70 group-hover/source:translate-x-0.5 group-hover/source:-translate-y-0.5 transition-transform" />
-                        {source.title}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </CardFooter>
-            )}
-          </Card>
-        ))}
-
-        {debater.responses.length === 0 && (
-          <div className="text-center py-16 text-gray-500 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-            <Bot size={40} className="mx-auto mb-4 text-gray-400" />
-            <p>No responses yet. Start the debate to see this AI's perspective.</p>
+    <div className="h-full flex flex-col">
+      <Card className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col">
+        <CardHeader className="border-b border-gray-100 pb-3">
+          <div className="flex items-center gap-4">
+            {getDebaterAvatar(debater.id, debater.stance)}
+            <div>
+              <CardTitle className="text-lg text-gray-900">{debater.name}</CardTitle>
+              <CardDescription className="text-gray-500">
+                {debater.stance} Perspective {debater.model && <span className="opacity-80">• {debater.model}</span>}
+              </CardDescription>
+            </div>
           </div>
-        )}
-      </div>
+        </CardHeader>
+        
+        <CardContent className="pt-4 flex-grow overflow-auto">
+          <div className="space-y-4">
+            {debater.responses.map((response, index) => (
+              <div key={index} className={`${response.isLoading ? "animate-pulse" : ""}`}>
+                <div className="flex items-center mb-2">
+                  <div className="w-4 h-4 mr-2 text-[#E71D73] opacity-70 flex items-center justify-center">
+                    <span className="w-3 h-3 border-2 border-[#E71D73] rounded-full"></span>
+                  </div>
+                  <p className="text-sm font-medium text-gray-700">Research Round {index + 1}</p>
+                </div>
+                
+                <div className="text-gray-700 space-y-2">
+                  <p className="whitespace-pre-wrap leading-relaxed">
+                    {response.text}
+                  </p>
+                  
+                  {response.isLoading && (
+                    <div className="mt-4 flex justify-center">
+                      <div className="h-2 w-2 bg-[#E71D73] rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                      <div className="mx-1 h-2 w-2 bg-[#E71D73] rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                      <div className="h-2 w-2 bg-[#E71D73] rounded-full animate-bounce"></div>
+                    </div>
+                  )}
+                </div>
+                
+                {!response.isLoading && response.sources && response.sources.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                      <span className="w-1.5 h-1.5 bg-[#E71D73] rounded-full mr-2"></span>
+                      Sources
+                    </h4>
+                    <ul className="space-y-1 w-full">
+                      {response.sources.map((source, idx) => (
+                        <li key={idx} className="text-xs group/source">
+                          <a 
+                            href={source.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center text-[#E71D73] hover:text-[#CF196A] transition-colors"
+                          >
+                            <span className="mr-1 text-[#E71D73] opacity-70 group-hover/source:translate-x-0.5 group-hover/source:-translate-y-0.5 transition-transform">→</span>
+                            {source.title}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {index < debater.responses.length - 1 && (
+                  <div className="border-b border-gray-100 my-4"></div>
+                )}
+              </div>
+            ))}
+
+            {debater.responses.length === 0 && (
+              <div className="text-center py-10 text-gray-500">
+                <div className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-3 flex items-center justify-center">
+                  <span className="text-gray-400">?</span>
+                </div>
+                <p className="text-sm">No research yet. Start to see this AI's perspective.</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+        
+        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#E71D73]/5 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none"></div>
+      </Card>
     </div>
   );
 } 

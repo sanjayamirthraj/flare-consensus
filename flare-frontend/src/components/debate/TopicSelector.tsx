@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronDown, Edit3 } from "lucide-react";
 
 interface DebateTopicSelectorProps {
   predefinedTopics: string[];
@@ -26,15 +25,15 @@ export function DebateTopicSelector({
       <div className="space-y-2 relative">
         <Label htmlFor="topic" className="text-gray-700 flex items-center text-sm">
           <span className="w-2 h-2 bg-[#E71D73] rounded-full mr-2"></span>
-          SELECT TOPIC
+          SELECT RESEARCH TOPIC
         </Label>
         <Select value={selectedTopic} onValueChange={setSelectedTopic}>
           <SelectTrigger 
             id="topic" 
             className="border-gray-300 bg-white text-gray-800 hover:border-[#E71D73] transition-all h-12 glow-border-focus"
           >
-            <SelectValue placeholder="Select a topic for debate" />
-            <ChevronDown className="h-4 w-4 text-gray-400" />
+            <SelectValue placeholder="Select a topic to research" />
+            <span className="h-4 w-4 text-gray-400">▼</span>
           </SelectTrigger>
           <SelectContent 
             className="bg-white border-gray-200 text-gray-800 max-h-[300px]"
@@ -56,7 +55,7 @@ export function DebateTopicSelector({
                 className="text-gray-700 focus:bg-[#E71D73]/10 focus:text-[#E71D73] relative rounded-sm px-8 py-2.5 hover:bg-[#E71D73]/5 transition-all duration-200 cursor-pointer data-[state=checked]:bg-[#E71D73]/10 data-[state=checked]:text-[#E71D73]"
               >
                 <div className="flex items-center">
-                  <Edit3 className="mr-2 h-4 w-4" />
+                  <span className="mr-2 text-sm">✏️</span>
                   Custom Topic
                 </div>
               </SelectItem>
@@ -74,7 +73,7 @@ export function DebateTopicSelector({
           <div className="relative">
             <Textarea
               id="custom-topic"
-              placeholder="Type your debate topic here..."
+              placeholder="Type your research topic here..."
               value={customTopic}
               onChange={(e) => setCustomTopic(e.target.value)}
               className="min-h-[120px] bg-white border-gray-300 text-gray-700 placeholder:text-gray-400 focus:border-[#E71D73] transition-all p-4 glow-border-focus"
@@ -84,7 +83,7 @@ export function DebateTopicSelector({
             </div>
           </div>
           <p className="text-xs text-gray-500 italic mt-1">
-            For best results, phrase your topic as a clear question or statement that can be debated.
+            For best results, phrase your topic as a clear question or statement that can be researched from multiple perspectives.
           </p>
         </div>
       )}

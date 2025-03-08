@@ -2,12 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { debateService } from "@/services/debateService";
-import { Info, Terminal } from "lucide-react";
 
 interface DebateContextProps {
   topic: string;
 }
+
+// Mock context data for topics
+const MOCK_CONTEXTS = {
+  "Is AI a threat to humanity?": 
+    "This debate explores the potential risks of advanced artificial intelligence systems. The question involves considerations of technological capabilities, ethical frameworks, regulatory approaches, and philosophical questions about consciousness and control. Key areas of focus include existential risks, job displacement, autonomous weapons, privacy concerns, and bias in AI systems.",
+  
+  "Should cryptocurrency be regulated?": 
+    "This debate examines the role of government regulation in cryptocurrency markets. Topics include concerns about market volatility, consumer protection, financial stability, crime prevention, environmental impact, and innovation. The debate touches on economics, law, technology, and governance.",
+  
+  "Is climate change the biggest threat facing humanity?": 
+    "This debate explores the severity and urgency of climate change relative to other global challenges. Areas of discussion include scientific consensus, economic impacts, health effects, national security, technological solutions, and intergenerational ethics. The topic spans science, economics, politics, and ethics.",
+  
+  "Should universal basic income be implemented?": 
+    "This debate examines the potential benefits and drawbacks of providing all citizens with a regular stipend regardless of employment status. Topics include economic feasibility, social welfare, labor market effects, automation responses, wealth inequality, and human dignity. The discussion involves economics, social policy, politics, and philosophy.",
+  
+  "Is space exploration worth the cost?": 
+    "This debate evaluates whether the financial investment in space exploration yields sufficient benefits to humanity. Areas of focus include scientific advancement, technological innovation, resource utilization, national prestige, existential risk mitigation, and opportunity costs. The topic spans economics, science, technology, and ethics."
+};
 
 export function DebateContext({ topic }: DebateContextProps) {
   const [contextInfo, setContextInfo] = useState<string>("");
@@ -18,23 +34,15 @@ export function DebateContext({ topic }: DebateContextProps) {
     
     setIsLoading(true);
     
-    // Fetch context information about the topic from the service
-    const fetchContext = async () => {
-      try {
-        const contextData = await debateService.getTopicContext(topic);
-        setContextInfo(contextData);
-      } catch (error) {
-        console.error("Failed to fetch topic context:", error);
-        setContextInfo(
-          `An error occurred while fetching context for "${topic}". ` +
-          `The debate will continue, but background information may be limited.`
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // Use mock data directly instead of API call
+    setTimeout(() => {
+      const mockContext = MOCK_CONTEXTS[topic] || 
+        `This is a multi-perspective analysis of "${topic}". The topic has significant implications across various domains and can be examined from multiple viewpoints to provide a comprehensive understanding.`;
+      
+      setContextInfo(mockContext);
+      setIsLoading(false);
+    }, 800);
     
-    fetchContext();
   }, [topic]);
 
   return (
@@ -42,8 +50,10 @@ export function DebateContext({ topic }: DebateContextProps) {
       <div className="flex items-center">
         <span className="w-2 h-2 bg-[#E71D73] rounded-full mr-2"></span>
         <h3 className="text-lg font-medium text-gray-900 flex items-center">
-          <Info size={18} className="mr-2 text-[#E71D73]" />
-          Topic Context
+          <span className="mr-2 text-[#E71D73] inline-block w-5 h-5 flex items-center justify-center">
+            <span className="text-sm">📚</span>
+          </span>
+          Topic Overview
         </h3>
       </div>
       
@@ -57,7 +67,7 @@ export function DebateContext({ topic }: DebateContextProps) {
         ) : (
           <div className="relative">
             <div className="absolute top-[-3px] left-[-15px] text-[#E71D73]/30">
-              <Terminal size={36} />
+              <span className="text-3xl">💻</span>
             </div>
             <p className="text-gray-700 whitespace-pre-wrap leading-relaxed pl-6">
               {contextInfo}
