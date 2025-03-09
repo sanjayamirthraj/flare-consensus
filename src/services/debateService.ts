@@ -152,9 +152,9 @@ export const debateService = {
   async getAvailableDebaters(): Promise<AIDebater[]> {
     // This would typically come from an API, but for simplicity we'll return static data
     return [
-      { id: 1, name: "Perspective A", stance: "For", model: "DeepSeek" },
-      { id: 2, name: "Perspective B", stance: "Against", model: "DeepSeek" },
-      { id: 3, name: "Perspective C", stance: "Neutral", model: "DeepSeek" }
+      { id: 1, name: "Perspective A", stance: "For", model: "gemini-2.0-flash-001" },
+      { id: 2, name: "Perspective B", stance: "Against", model: "gemini-2.0-flash-001" },
+      { id: 3, name: "Perspective C", stance: "Neutral", model: "gemini-2.0-flash-001" }
     ];
   }
 }; 

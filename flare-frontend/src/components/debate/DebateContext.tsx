@@ -13,17 +13,22 @@ export function DebateContext({ topic }: DebateContextProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    // Clear existing context info when topic changes
+    setContextInfo("");
+    
     if (!topic) return;
     
     setIsLoading(true);
+    console.log(`Fetching context for topic: ${topic}`);
     
     // Use the debateService to get context for the topic
     const fetchContext = async () => {
       try {
         const context = await debateService.getTopicContext(topic);
+        console.log(`Received context for ${topic}:`, context);
         setContextInfo(context);
       } catch (error) {
-        console.error("Error fetching topic context:", error);
+        console.error(`Error fetching topic context for '${topic}':`, error);
         setContextInfo(`This debate explores multiple perspectives on "${topic}".`);
       } finally {
         setIsLoading(false);
@@ -39,7 +44,7 @@ export function DebateContext({ topic }: DebateContextProps) {
         className="flex items-center"
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 1.0 }}
       >
         <h3 className="text-lg font-semibold text-gray-900 flex items-center">
           <motion.span 

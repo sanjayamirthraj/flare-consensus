@@ -406,3 +406,13 @@
 .glow-card:hover {
   box-shadow: 0 5px 30px rgba(231, 29, 115, 0.1);
 }
+
+/* Research card glow animation */
+.research-card-glow {
+  box-shadow: 0 0 8px rgba(231, 29, 115, 0.08);
+}
+
+/* Remove flashing text animation */
+.slow-text-fade {
+  opacity: 0.8;
+}

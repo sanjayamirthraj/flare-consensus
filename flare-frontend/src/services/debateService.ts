@@ -17,19 +17,19 @@ export interface AIDebater {
 
 // Mock data for topics to provide context
 const topicContexts: Record<string, string> = {
-  "AI is a threat to humanity.": 
+  "Is AI a threat to humanity?": 
     "This debate explores the potential risks of advanced artificial intelligence systems. The question involves considerations of technological capabilities, ethical frameworks, regulatory approaches, and philosophical questions about consciousness and control. Key areas of focus include existential risks, job displacement, autonomous weapons, privacy concerns, and bias in AI systems.",
   
-  "Cryptocurrency should be regulated.": 
+  "Should cryptocurrency be regulated?": 
     "This debate examines the role of government regulation in cryptocurrency markets. Topics include concerns about market volatility, consumer protection, financial stability, crime prevention, environmental impact, and innovation. The debate touches on economics, law, technology, and governance.",
   
-  "Climate change is the biggest threat facing humanity.": 
+  "Is climate change the biggest threat facing humanity?": 
     "This debate explores the severity and urgency of climate change relative to other global challenges. Areas of discussion include scientific consensus, economic impacts, health effects, national security, technological solutions, and intergenerational ethics. The topic spans science, economics, politics, and ethics.",
   
-  "Universal basic income should be implemented.": 
+  "Should universal basic income be implemented?": 
     "This debate examines the potential benefits and drawbacks of providing all citizens with a regular stipend regardless of employment status. Topics include economic feasibility, social welfare, labor market effects, automation responses, wealth inequality, and human dignity. The discussion involves economics, social policy, politics, and philosophy.",
   
-  "Space exploration is worth the cost.": 
+  "Is space exploration worth the cost?": 
     "This debate evaluates whether the financial investment in space exploration yields sufficient benefits to humanity. Areas of focus include scientific advancement, technological innovation, resource utilization, national prestige, existential risk mitigation, and opportunity costs. The topic spans economics, science, technology, and ethics."
 };
 
@@ -200,9 +200,9 @@ export const debateService = {
   async getAvailableDebaters(): Promise<AIDebater[]> {
     // This would typically come from an API, but for simplicity we'll return static data
     return [
-      { id: 1, name: "Perspective A", stance: "For", model: "DeepSeek" },
-      { id: 2, name: "Perspective B", stance: "Against", model: "DeepSeek" },
-      { id: 3, name: "Perspective C", stance: "Neutral", model: "DeepSeek" }
+      { id: 1, name: "Perspective A", stance: "For", model: "gemini-2.0-flash-001" },
+      { id: 2, name: "Perspective B", stance: "Against", model: "gemini-2.0-flash-001" },
+      { id: 3, name: "Perspective C", stance: "Neutral", model: "gemini-2.0-flash-001" }
     ];
   }
 }; 

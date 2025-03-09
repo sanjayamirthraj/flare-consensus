@@ -87,7 +87,9 @@ export function AIDebater({ debater }: AIDebaterProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="bg-white border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col overflow-hidden group relative">
+      <Card className={`bg-white border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col overflow-hidden group relative ${
+        debater.isLoading ? 'research-card-glow' : ''
+      }`}>
         {/* Card background pattern */}
         <div className="absolute inset-0 overflow-hidden opacity-[0.03] pointer-events-none">
           <motion.div 
@@ -100,6 +102,21 @@ export function AIDebater({ debater }: AIDebaterProps) {
             transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           />
         </div>
+
+        {/* Add slow pulsing background for loading state */}
+        {debater.isLoading && (
+          <motion.div 
+            className="absolute inset-0 bg-gradient-to-r from-[#E71D73]/1 via-[#E71D73]/2 to-[#E71D73]/1 pointer-events-none"
+            animate={{ 
+              x: [-20, 20, -20],
+            }}
+            transition={{ 
+              duration: 8.0,
+              repeat: Infinity, 
+              ease: "easeInOut"
+            }}
+          />
+        )}
         
         <CardHeader className="border-b border-gray-100 pb-4 relative">
           <div className="flex items-center gap-4">
@@ -143,80 +160,99 @@ export function AIDebater({ debater }: AIDebaterProps) {
         </CardHeader>
         
         <CardContent className="pt-5 flex-grow overflow-auto">
-          <div className="space-y-5">
+          <div className="space-y-6">
             {debater.responses.map((response, index) => (
               <motion.div 
                 key={index} 
-                className={`${response.isLoading ? "animate-pulse" : ""} transition-all duration-300`}
+                className="transition-all duration-300"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
               >
-                <div className="flex items-center mb-3">
+                <div className={`flex items-center mb-3 pb-2 ${index > 0 ? "pt-2 border-t border-gray-100" : ""}`}>
                   <motion.div 
-                    className={`w-5 h-5 mr-2 flex items-center justify-center rounded-full ${
+                    className={`w-6 h-6 mr-2 flex items-center justify-center rounded-full ${
                       debater.stance === "For" ? "bg-[#E71D73]/10 text-[#E71D73]" : 
                       debater.stance === "Against" ? "bg-[#CF196A]/10 text-[#CF196A]" : 
                       "bg-[#B71761]/10 text-[#B71761]"
                     }`}
-                    whileHover={{ scale: 1.2, rotate: 10 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 10 }}
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
                     <span className="text-xs font-semibold">{index + 1}</span>
                   </motion.div>
-                  <p className="text-sm font-medium text-gray-700">Research Round {index + 1}</p>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Research Round {index + 1}</p>
+                    {index > 0 && (
+                      <p className="text-xs text-gray-500">Follow-up</p>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="text-gray-700 space-y-3">
-                  <motion.p 
-                    className="whitespace-pre-wrap leading-relaxed"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                  >
-                    {response.text}
-                  </motion.p>
+                  {response.isLoading ? (
+                    <motion.p 
+                      className="whitespace-pre-wrap leading-relaxed text-gray-600"
+                      initial={{ opacity: 0.8 }}
+                      animate={{ opacity: 0.8 }}
+                      transition={{ duration: 1.0 }}
+                    >
+                      {response.text}
+                    </motion.p>
+                  ) : (
+                    <motion.p 
+                      className="whitespace-pre-wrap leading-relaxed"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 1.2, delay: 0.2 }}
+                    >
+                      {response.text}
+                    </motion.p>
+                  )}
                   
                   {response.isLoading && (
                     <div className="mt-5 flex justify-center">
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-3">
                         <motion.div 
-                          className="h-2.5 w-2.5 bg-[#E71D73] rounded-full"
+                          className="h-3 w-3 bg-[#E71D73]/40 rounded-full"
                           animate={{ 
-                            scale: [1, 1.5, 1],
-                            opacity: [1, 0.5, 1]
+                            scale: [1, 1.2, 1],
+                            x: [0, 3, 0]
                           }}
                           transition={{ 
-                            duration: 1.2, 
+                            duration: 4.0,
                             repeat: Infinity, 
                             ease: "easeInOut",
-                            delay: 0
+                            delay: 0,
+                            repeatType: "reverse"
                           }}
                         />
                         <motion.div 
-                          className="h-2.5 w-2.5 bg-[#E71D73] rounded-full"
+                          className="h-3 w-3 bg-[#E71D73]/40 rounded-full"
                           animate={{ 
-                            scale: [1, 1.5, 1],
-                            opacity: [1, 0.5, 1]
+                            scale: [1, 1.2, 1],
+                            x: [0, 3, 0]
                           }}
                           transition={{ 
-                            duration: 1.2, 
+                            duration: 4.0,
                             repeat: Infinity, 
                             ease: "easeInOut",
-                            delay: 0.2
+                            delay: 1.3,
+                            repeatType: "reverse"
                           }}
                         />
                         <motion.div 
-                          className="h-2.5 w-2.5 bg-[#E71D73] rounded-full"
+                          className="h-3 w-3 bg-[#E71D73]/40 rounded-full"
                           animate={{ 
-                            scale: [1, 1.5, 1],
-                            opacity: [1, 0.5, 1]
+                            scale: [1, 1.2, 1],
+                            x: [0, 3, 0]
                           }}
                           transition={{ 
-                            duration: 1.2, 
+                            duration: 4.0,
                             repeat: Infinity, 
                             ease: "easeInOut",
-                            delay: 0.4
+                            delay: 2.6,
+                            repeatType: "reverse"
                           }}
                         />
                       </div>
@@ -279,10 +315,6 @@ export function AIDebater({ debater }: AIDebaterProps) {
                       ))}
                     </ul>
                   </motion.div>
-                )}
-                
-                {index < debater.responses.length - 1 && (
-                  <div className="border-b border-gray-100 my-5"></div>
                 )}
               </motion.div>
             ))}

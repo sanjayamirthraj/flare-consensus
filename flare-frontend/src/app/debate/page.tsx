@@ -11,11 +11,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 const predefinedTopics = [
-  "AI is a threat to humanity.",
-  "Cryptocurrency should be regulated.",
-  "Climate change is the biggest threat facing humanity.",
-  "Universal basic income should be implemented.",
-  "Space exploration is worth the cost.",
+  "Is AI a threat to humanity?",
+  "Should cryptocurrency be regulated?",
+  "Is climate change the biggest threat facing humanity?",
+  "Should universal basic income be implemented?",
+  "Is space exploration worth the cost?",
 ];
 
 interface Response {
@@ -96,24 +96,29 @@ export default function DebatePage() {
       }))
     );
     
-    // Get responses for each debater
     try {
-      const updatedDebaters = [...debaters];
+      // Get a fresh copy of debaters state after the update
+      const currentDebatersState = [...debaters];
       
       // Process each debater sequentially to avoid race conditions
-      for (let i = 0; i < updatedDebaters.length; i++) {
-        const debater = updatedDebaters[i];
+      for (let i = 0; i < currentDebatersState.length; i++) {
+        const debater = currentDebatersState[i];
         
         // Update message to show this debater is currently being processed
         if (i > 0) {
-          updatedDebaters[i] = {
-            ...debater,
-            responses: [{ 
-              text: `Researching "${topic}" from ${debater.stance} perspective...`, 
-              isLoading: true 
-            }],
-          };
-          setDebaters([...updatedDebaters]);
+          setDebaters(prevState => {
+            return prevState.map((d, idx) => {
+              if (idx !== i) return d;
+              
+              return {
+                ...d,
+                responses: [{ 
+                  text: `Researching "${topic}" from ${d.stance} perspective...`, 
+                  isLoading: true 
+                }]
+              };
+            });
+          });
         }
         
         try {
@@ -124,39 +129,50 @@ export default function DebatePage() {
             1
           );
           
-          // Update this specific debater with the response
-          updatedDebaters[i] = {
-            ...debater,
-            responses: [{ 
-              text: response.text, 
-              isLoading: false,
-              sources: response.sources 
-            }],
-            isLoading: false
-          };
-        } catch (debaterError) {
-          console.error(`Error fetching response for ${debater.stance} perspective:`, debaterError);
+          // Update this debater with response
+          setDebaters(prevState => {
+            return prevState.map((d, idx) => {
+              if (idx !== i) return d;
+              
+              return {
+                ...d,
+                responses: [{ 
+                  text: response.text, 
+                  isLoading: false,
+                  sources: response.sources
+                }],
+                isLoading: false
+              };
+            });
+          });
+        } catch (error) {
+          console.error(`Error getting response for ${debater.stance}:`, error);
           
-          // Update this specific debater with error state
-          updatedDebaters[i] = {
-            ...debater,
-            responses: [{ 
-              text: `Unable to generate a response for the ${debater.stance} perspective. Please try again.`, 
-              isLoading: false,
-              sources: [] 
-            }],
-            isLoading: false
-          };
+          // Update with error
+          setDebaters(prevState => {
+            return prevState.map((d, idx) => {
+              if (idx !== i) return d;
+              
+              return {
+                ...d,
+                responses: [{ 
+                  text: `Failed to generate a response for ${d.stance} perspective. Please try again.`,
+                  isLoading: false,
+                  sources: []
+                }],
+                isLoading: false
+              };
+            });
+          });
         }
-        
-        // Update state after each debater to show progressive loading
-        setDebaters([...updatedDebaters]);
       }
       
       setIsResearching(false);
     } catch (error) {
       console.error("Error in research process:", error);
-      // Reset loading state on error
+      setApiError("An error occurred during the debate. Please try again or choose a different topic.");
+      
+      // Reset loading states on error
       setDebaters(prev => 
         prev.map(debater => ({
           ...debater,
@@ -168,10 +184,109 @@ export default function DebatePage() {
           isLoading: false
         }))
       );
-      setApiError("An error occurred during the debate. Please try again or choose a different topic.");
       setIsResearching(false);
     }
   }, [debaters, getCurrentTopic]);
+
+  // Handle starting a new round of research
+  const handleNewRound = useCallback(async () => {
+    const topic = getCurrentTopic();
+    const nextRound = currentRound + 1;
+    
+    // Add a new loading response to each debater
+    setDebaters(prev => 
+      prev.map(debater => ({
+        ...debater,
+        responses: [
+          ...debater.responses,
+          { 
+            text: `Continuing research on "${topic}" with round ${nextRound}...`, 
+            isLoading: true 
+          }
+        ],
+        isLoading: true
+      }))
+    );
+    
+    try {
+      // Get a fresh copy of debaters state after the update
+      const currentDebatersState = [...debaters];
+      
+      // Process each debater sequentially
+      for (let i = 0; i < currentDebatersState.length; i++) {
+        const debater = currentDebatersState[i];
+        
+        try {
+          const response = await debateService.getAIResponse(
+            topic, 
+            debater.id, 
+            debater.stance, 
+            nextRound
+          );
+          
+          // Update this debater's latest response
+          setDebaters(prevState => {
+            return prevState.map((d, idx) => {
+              if (idx !== i) return d;
+              
+              const updatedResponses = [...d.responses];
+              updatedResponses[updatedResponses.length - 1] = {
+                text: response.text,
+                isLoading: false,
+                sources: response.sources
+              };
+              
+              return {
+                ...d,
+                responses: updatedResponses,
+                isLoading: false
+              };
+            });
+          });
+        } catch (error) {
+          console.error(`Error getting response for ${debater.stance}:`, error);
+          
+          // Update with error
+          setDebaters(prevState => {
+            return prevState.map((d, idx) => {
+              if (idx !== i) return d;
+              
+              const updatedResponses = [...d.responses];
+              updatedResponses[updatedResponses.length - 1] = {
+                text: `Failed to generate a response for round ${nextRound}. Please try again.`,
+                isLoading: false,
+                sources: []
+              };
+              
+              return {
+                ...d,
+                responses: updatedResponses,
+                isLoading: false
+              };
+            });
+          });
+        }
+      }
+      
+      setCurrentRound(nextRound);
+    } catch (error) {
+      console.error("Error in new round process:", error);
+      setApiError("An error occurred while generating new research. Please try again.");
+      
+      // Reset loading states on error
+      setDebaters(prev => 
+        prev.map(debater => ({
+          ...debater,
+          responses: debater.responses.map((r, idx) => 
+            idx === debater.responses.length - 1 
+              ? { ...r, isLoading: false, text: 'Failed to load response. Please try again.' } 
+              : r
+          ),
+          isLoading: false
+        }))
+      );
+    }
+  }, [currentRound, debaters, getCurrentTopic]);
 
   // Handle follow-up question submission
   const handleFollowUp = useCallback(async () => {
@@ -198,27 +313,32 @@ export default function DebatePage() {
       }))
     );
     
-    // Get responses for each debater
     try {
-      const updatedDebaters = [...debaters];
+      // Get a fresh copy of debaters state after the update
+      const currentDebatersState = [...debaters];
       
       // Process each debater sequentially
-      for (let i = 0; i < updatedDebaters.length; i++) {
-        const debater = updatedDebaters[i];
+      for (let i = 0; i < currentDebatersState.length; i++) {
+        const debater = currentDebatersState[i];
         
         // Update message to show this debater is currently being processed
         if (i > 0) {
-          const updatedResponses = [...debater.responses];
-          updatedResponses[updatedResponses.length - 1] = {
-            text: `Answering follow-up question: "${followUpQuestion}" from ${debater.stance} perspective...`,
-            isLoading: true
-          };
-          
-          updatedDebaters[i] = {
-            ...debater,
-            responses: updatedResponses
-          };
-          setDebaters([...updatedDebaters]);
+          setDebaters(prevState => {
+            return prevState.map((d, idx) => {
+              if (idx !== i) return d;
+              
+              const updatedResponses = [...d.responses];
+              updatedResponses[updatedResponses.length - 1] = {
+                text: `Answering follow-up question: "${followUpQuestion}" from ${debater.stance} perspective...`,
+                isLoading: true
+              };
+              
+              return {
+                ...d,
+                responses: updatedResponses
+              };
+            });
+          });
         }
         
         try {
@@ -229,39 +349,48 @@ export default function DebatePage() {
             followUpQuestion
           );
           
-          // Update this specific debater with the new response, preserving previous responses
-          updatedDebaters[i] = {
-            ...debater,
-            responses: [
-              ...debater.responses.slice(0, -1), // All previous complete responses
-              { 
-                text: response.text, 
+          // Update this debater's latest response
+          setDebaters(prevState => {
+            return prevState.map((d, idx) => {
+              if (idx !== i) return d;
+              
+              const updatedResponses = [...d.responses];
+              updatedResponses[updatedResponses.length - 1] = {
+                text: response.text,
                 isLoading: false,
-                sources: response.sources 
-              }
-            ],
-            isLoading: false
-          };
-        } catch (debaterError) {
-          console.error(`Error fetching follow-up response for ${debater.stance} perspective:`, debaterError);
+                sources: response.sources
+              };
+              
+              return {
+                ...d,
+                responses: updatedResponses,
+                isLoading: false
+              };
+            });
+          });
+        } catch (error) {
+          console.error(`Error getting follow-up response for ${debater.stance}:`, error);
           
-          // Update this specific debater with error state but preserve previous responses
-          updatedDebaters[i] = {
-            ...debater,
-            responses: [
-              ...debater.responses.slice(0, -1), // All previous complete responses
-              { 
-                text: `Unable to generate a response to the follow-up question for the ${debater.stance} perspective. Please try again.`, 
+          // Update with error
+          setDebaters(prevState => {
+            return prevState.map((d, idx) => {
+              if (idx !== i) return d;
+              
+              const updatedResponses = [...d.responses];
+              updatedResponses[updatedResponses.length - 1] = {
+                text: `Failed to generate a response for your follow-up question. Please try again.`,
                 isLoading: false,
-                sources: [] 
-              }
-            ],
-            isLoading: false
-          };
+                sources: []
+              };
+              
+              return {
+                ...d,
+                responses: updatedResponses,
+                isLoading: false
+              };
+            });
+          });
         }
-        
-        // Update state after each debater
-        setDebaters([...updatedDebaters]);
       }
       
       setCurrentRound(nextRound);
@@ -269,7 +398,9 @@ export default function DebatePage() {
       setShowFollowUpForm(false);
     } catch (error) {
       console.error("Error in follow-up process:", error);
-      // Reset loading state on error
+      setApiError("An error occurred while processing your follow-up question. Please try again.");
+      
+      // Reset loading states on error
       setDebaters(prev => 
         prev.map(debater => ({
           ...debater,
@@ -281,77 +412,8 @@ export default function DebatePage() {
           isLoading: false
         }))
       );
-      setApiError("An error occurred while processing your follow-up question. Please try again.");
     }
   }, [debaters, followUpQuestion, getCurrentTopic, currentRound]);
-
-  // Handle starting a new round of research
-  const handleNewRound = useCallback(async () => {
-    const topic = getCurrentTopic();
-    const nextRound = currentRound + 1;
-    
-    // Add a new loading response to each debater
-    setDebaters(prev => 
-      prev.map(debater => ({
-        ...debater,
-        responses: [
-          ...debater.responses,
-          { 
-            text: `Continuing research on "${topic}" with round ${nextRound}...`, 
-            isLoading: true 
-          }
-        ],
-        isLoading: true
-      }))
-    );
-    
-    // Get responses for each debater
-    try {
-      const updatedDebaters = [...debaters];
-      
-      // Process each debater sequentially
-      for (let i = 0; i < updatedDebaters.length; i++) {
-        const debater = updatedDebaters[i];
-        const response = await debateService.getAIResponse(
-          topic, 
-          debater.id, 
-          debater.stance, 
-          nextRound
-        );
-        
-        // Update this specific debater with the new response
-        updatedDebaters[i] = {
-          ...debater,
-          responses: [
-            ...debater.responses.slice(0, -1), // All previous complete responses
-            { 
-              text: response.text, 
-              isLoading: false,
-              sources: response.sources 
-            }
-          ],
-          isLoading: false
-        };
-        
-        // Update state after each debater
-        setDebaters([...updatedDebaters]);
-      }
-      
-      setCurrentRound(nextRound);
-    } catch (error) {
-      console.error("Error fetching new round responses:", error);
-      // Reset loading state on error
-      setDebaters(prev => 
-        prev.map(debater => ({
-          ...debater,
-          responses: debater.responses.map((r, idx) => 
-            idx === debater.responses.length - 1 ? { ...r, isLoading: false } : r
-          ),
-          isLoading: false
-        }))
-      );
-    }
-  }, [currentRound, debaters, getCurrentTopic]);
 
   // Add this section near where you render UI elements
   const renderErrorMessage = () => {
@@ -429,7 +491,7 @@ export default function DebatePage() {
             <span className="text-2xl font-bold text-[#E71D73] group-hover:glow-text transition-all duration-300">Flare</span>
             <span className="text-2xl font-bold group-hover:text-gray-700 transition-all duration-300">Consensus</span>
           </Link>
-          <Link href="https://github.com/your-username/flare-consensus" target="_blank" className="text-gray-600 hover:text-[#E71D73] transition-all duration-300 opacity-0 animate-fadeIn" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+          <Link href="https://github.com/your-username/flare-consensus" target="_blank" className="text-gray-600 hover:text-[#E71D73] transition-all duration-300 opacity-0 animate-fadeIn" style={{ animationDelay: '1.0s', animationFillMode: 'forwards' }}>
             GitHub
           </Link>
         </div>
@@ -465,7 +527,7 @@ export default function DebatePage() {
           className="mb-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 1, delay: 0.2 }}
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Topic Selection */}
@@ -518,7 +580,15 @@ export default function DebatePage() {
                   />
                   {isResearching ? (
                     <span className="flex items-center justify-center">
-                      <span className="mr-2 inline-block w-2 h-2 bg-white rounded-full animate-ping"></span>
+                      <motion.div 
+                        className="mr-2 inline-block w-2 h-2 bg-white/70 rounded-full"
+                        animate={{ x: [-2, 2, -2] }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      />
                       Researching...
                     </span>
                   ) : (
@@ -531,7 +601,7 @@ export default function DebatePage() {
             {/* Topic Context */}
             <div className="lg:col-span-6">
               {getCurrentTopic() ? (
-                <DebateContext topic={getCurrentTopic()} />
+                <DebateContext key={`initial-${getCurrentTopic()}`} topic={getCurrentTopic()} />
               ) : (
                 <div className="h-full bg-white border border-gray-200 rounded-lg p-6 flex items-center justify-center text-center bg-gradient-to-br from-white to-[#E71D73]/5">
                   <div>
@@ -568,7 +638,7 @@ export default function DebatePage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 1, delay: 0.3 }}
         >
           {debaters.length > 0 && currentRound > 0 ? (
             <>
@@ -577,23 +647,40 @@ export default function DebatePage() {
                 className="flex justify-center mb-8"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                transition={{ type: "spring", stiffness: 300, damping: 15, duration: 1.2 }}
               >
                 <div className="inline-flex items-center px-4 py-2 rounded-full bg-[#E71D73]/10 border border-[#E71D73]/20 text-[#E71D73] text-sm font-medium animate-fadeIn">
-                  <motion.span 
-                    className="mr-2 inline-block w-3 h-3 rounded-full bg-[#E71D73]"
+                  <motion.div 
+                    className="mr-2 inline-block w-3 h-3 rounded-full bg-[#E71D73]/40"
                     animate={{ 
-                      boxShadow: ["0 0 0px rgba(231, 29, 115, 0.3)", "0 0 8px rgba(231, 29, 115, 0.8)", "0 0 0px rgba(231, 29, 115, 0.3)"]
+                      x: [0, 2, 0]
                     }}
                     transition={{ 
-                      duration: 1.5,
+                      duration: 4.0,
                       repeat: Infinity,
-                      ease: "easeInOut"
+                      ease: "easeInOut",
+                      repeatType: "reverse"
                     }}
                   />
-                  Research Round {currentRound}
+                  <span>Research Round {currentRound}</span>
                 </div>
               </motion.div>
+              
+              {/* Topic Context - Shown during research phase as well */}
+              {getCurrentTopic() && (
+                <motion.div 
+                  className="mb-8"
+                  key={`context-container-${getCurrentTopic()}`}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <h3 className="text-lg font-semibold mb-2 text-center text-gray-800">
+                    <span className="text-[#E71D73]">{getCurrentTopic()}</span> - Topic Overview
+                  </h3>
+                  <DebateContext key={`debate-${getCurrentTopic()}-${currentRound}`} topic={getCurrentTopic()} />
+                </motion.div>
+              )}
               
               {/* Debaters grid - Now full width with staggered animation */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -603,7 +690,7 @@ export default function DebatePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ 
-                      duration: 0.5, 
+                      duration: 1.0, 
                       delay: index * 0.15
                     }}
                   >
@@ -647,10 +734,10 @@ export default function DebatePage() {
                     <motion.div whileTap={{ scale: 0.95 }}>
                       <Button 
                         onClick={handleFollowUp} 
-                        disabled={!followUpQuestion.trim() || debaters.some(d => d.isLoading)}
+                        disabled={!followUpQuestion.trim() || isResearching}
                         className="bg-[#E71D73] hover:bg-[#D61A6A] text-white glow-button"
                       >
-                        {debaters.some(d => d.isLoading) ? (
+                        {isResearching ? (
                           <span className="flex items-center">
                             <span className="mr-2 inline-block w-2 h-2 bg-white rounded-full animate-ping"></span>
                             Processing...
@@ -673,7 +760,7 @@ export default function DebatePage() {
                     <Button 
                       variant="outline" 
                       onClick={() => setShowFollowUpForm(true)}
-                      disabled={debaters.some(d => d.isLoading)}
+                      disabled={isResearching}
                       className="border-[#E71D73]/30 text-[#E71D73] hover:bg-[#E71D73]/5 hover:border-[#E71D73] px-6 relative overflow-hidden group"
                     >
                       <motion.span 
@@ -694,7 +781,7 @@ export default function DebatePage() {
                     <span className="absolute inset-0 rounded-md bg-[#E71D73]/20 -z-10 filter blur-md" />
                     <Button 
                       onClick={handleNewRound}
-                      disabled={debaters.some(d => d.isLoading)}
+                      disabled={isResearching}
                       className="bg-[#E71D73] hover:bg-[#D61A6A] text-white glow-button px-6"
                     >
                       <span className="mr-2">
