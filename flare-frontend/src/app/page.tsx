@@ -11,15 +11,14 @@ export default function Home() {
         <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between">
           <Link href="/">
             <div className="flex items-center space-x-2 mb-4 sm:mb-0">
-              <span className="text-3xl font-bold text-[#E71D73]">Flare</span>
-              <span className="text-3xl font-bold">Consensus</span>
+              <span className="text-3xl font-bold text-[#E71D73]">Marckarimi</span>
             </div>
           </Link>
           <nav>
             <ul className="flex space-x-6">
               <li><Link href="/" className="text-gray-700 hover:text-[#E71D73] transition-all duration-300">Home</Link></li>
-              <li><Link href={"/debate"} className="text-gray-700 hover:text-[#E71D73] transition-all duration-300">Debate</Link></li>
-              <li><a href="https://github.com/your-username/flare-consensus" target="_blank" className="text-gray-700 hover:text-[#E71D73] transition-all duration-300 flex items-center"><Github size={16} className="mr-1" /> GitHub</a></li>
+              <li><Link href={"/debate"} className="text-gray-700 hover:text-[#E71D73] transition-all duration-300">Research</Link></li>
+              <li><a href="https://github.com/BabyChouSr/flare-consensus/commits/main/" target="_blank" className="text-gray-700 hover:text-[#E71D73] transition-all duration-300 flex items-center"><Github size={16} className="mr-1" /> GitHub</a></li>
             </ul>
           </nav>
         </div>
@@ -30,18 +29,18 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row items-center lg:items-start gap-12">
           <div className="lg:w-1/2 space-y-6 max-w-xl page-transition">
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
-              <span className="text-[#E71D73]">AI Debates</span> with Multiple Perspectives
+              <span className="text-[#E71D73]">AI Deep Research</span> with Multiple Perspectives
             </h1>
             <p className="text-lg text-gray-600">
-              Flare Consensus uses AI to analyze complex topics from different viewpoints,
+              Marckarimi uses AI to explore multiple perspectives on complex topics through AI-powered deep research models,
               providing balanced insights to help you form your own opinion.
             </p>
             <div className="flex flex-wrap gap-4">
               <Button className="bg-[#E71D73] hover:bg-[#d01968] text-white" size="lg" asChild>
-                <Link href={"/debate"}>Try a Debate <ArrowRight className="ml-2" size={16} /></Link>
+                <Link href={"/debate"}>Try a Research Topic <ArrowRight className="ml-2" size={16} /></Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <a href="https://github.com/your-username/flare-consensus" target="_blank">View Source <Github className="ml-2" size={16} /></a>
+                <a href="https://github.com/BabyChouSr/flare-consensus/commits/main/" target="_blank">View Source <Github className="ml-2" size={16} /></a>
               </Button>
             </div>
           </div>
@@ -210,14 +209,13 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <div className="flex items-center space-x-2">
-                <span className="text-2xl font-bold text-[#E71D73]">Flare</span>
-                <span className="text-2xl font-bold">Consensus</span>
+                <span className="text-2xl font-bold text-[#E71D73]">Marckarimi</span>
               </div>
-              <p className="mt-2 text-gray-400">Illuminating debates with multiple AI perspectives</p>
+              <p className="mt-2 text-gray-400">Exploring multiple perspectives through AI-powered deep research</p>
             </div>
             
             <div className="flex space-x-6">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://github.com/BabyChouSr/flare-consensus/commits/main/" className="text-gray-400 hover:text-white transition-colors">
                 <Github size={20} />
               </a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -230,7 +228,7 @@ export default function Home() {
           </div>
           
           <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-            <p>© {new Date().getFullYear()} Flare Consensus. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Marckarimi. All rights reserved.</p>
           </div>
         </div>
       </footer>

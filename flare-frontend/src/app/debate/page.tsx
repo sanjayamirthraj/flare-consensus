@@ -519,14 +519,21 @@ export default function DebatePage() {
       
       {/* Header */}
       <header className="border-b border-gray-100 p-4 bg-white/80 backdrop-blur-sm sticky top-0 z-10 shadow-sm animate-fadeIn">
-        <div className="container mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center space-x-2 group">
-            <span className="text-2xl font-bold text-[#E71D73] group-hover:glow-text transition-all duration-300">Flare</span>
-            <span className="text-2xl font-bold group-hover:text-gray-700 transition-all duration-300">Consensus</span>
-          </Link>
-          <Link href="https://github.com/your-username/flare-consensus" target="_blank" className="text-gray-600 hover:text-[#E71D73] transition-all duration-300 opacity-0 animate-fadeIn" style={{ animationDelay: '1.0s', animationFillMode: 'forwards' }}>
-            GitHub
-          </Link>
+        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center py-4 relative z-10">
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center space-x-2 text-[#E71D73] hover:opacity-90 transition">
+              <div className="text-2xl font-bold">Marckarimi</div>
+            </Link>
+            <div className="hidden md:block mx-8 h-6 w-px bg-gray-200"></div>
+            <div className="hidden md:block text-lg text-gray-800 font-semibold">AI Deep Research</div>
+          </div>
+          <div className="mt-4 md:mt-0">
+            <Link href="/">
+              <Button variant="outline" size="sm" className="rounded-full text-sm">
+                <span className="mr-2">↩</span> Back to Home
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -896,7 +903,9 @@ export default function DebatePage() {
       {/* Footer */}
       <footer className="border-t border-gray-100 py-6 mt-12 text-center text-gray-500 text-sm bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto">
-          <p>© {new Date().getFullYear()} <span className="text-[#E71D73]">Flare Consensus</span> • AI-Powered Debate Platform</p>
+          <div className="text-center text-sm text-gray-400">
+            <p>© {new Date().getFullYear()} <span className="text-[#E71D73]">Marckarimi</span> • AI-Powered Deep Research Platform</p>
+          </div>
         </div>
       </footer>
 

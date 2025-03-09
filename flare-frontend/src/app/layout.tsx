@@ -13,8 +13,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Flare Consensus - AI Debate Platform",
-  description: "Explore multiple perspectives on complex topics through AI-powered debates",
+  title: "Marckarimi -- An AI Deep Research Platform",
+  description: "Explore multiple perspectives on complex topics through AI-powered deep research models",
+  keywords: ["AI research", "deep research", "multiple perspectives", "AI analysis", "Marckarimi"],
+  authors: [{ name: "Marckarimi Team" }],
+  creator: "Marckarimi",
+  publisher: "Marckarimi",
+  openGraph: {
+    title: "Marckarimi -- AI Deep Research Platform",
+    description: "Explore multiple perspectives on complex topics through AI-powered deep research models",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Marckarimi -- AI Deep Research Platform",
+    description: "Explore multiple perspectives on complex topics through AI-powered deep research models",
+  }
 };
 
 export default function RootLayout({
