@@ -6,6 +6,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Marckarimi - Exploring Multiple Perspectives Through AI-Powered Deep Research
 
+
 Marckarimi is a cutting-edge platform designed to provide unbiased debates and deep research into complex topics. By leveraging AI consensus learning, Marckarimi presents multiple perspectives on contentious subjects, helping users form informed opinions based on a comprehensive understanding of different viewpoints.
 
 ## 📑 Table of Contents
@@ -58,6 +59,9 @@ In today's polarized information landscape, finding unbiased perspectives on com
 2. **AI Debate**: Three AI perspectives (For, Against, Neutral) provide insights on the topic
 3. **Follow-up Questions**: Ask clarifying questions to deepen your understanding
 4. **Research Paper**: Generate a comprehensive paper that synthesizes all perspectives
+
+![Image 3-9-25 at 9 34 AM](https://github.com/user-attachments/assets/7986853a-72c9-4e88-b353-c6a8a1bde903)
+
 
 ## 🚀 Getting Started
 
