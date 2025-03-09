@@ -11,11 +11,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 const predefinedTopics = [
-  "Is AI a threat to humanity?",
-  "Should cryptocurrency be regulated?",
-  "Is climate change the biggest threat facing humanity?",
-  "Should universal basic income be implemented?",
-  "Is space exploration worth the cost?",
+  "AI is a threat to humanity.",
+  "Cryptocurrency should be regulated.",
+  "Climate change is the biggest threat facing humanity.",
+  "Universal basic income should be implemented.",
+  "Space exploration is worth the cost.",
 ];
 
 interface Response {
@@ -39,6 +39,7 @@ export default function DebatePage() {
   const [debaters, setDebaters] = useState<Debater[]>([]);
   const [isResearching, setIsResearching] = useState<boolean>(false);
   const [currentRound, setCurrentRound] = useState<number>(0); 
+  const [apiError, setApiError] = useState<string | null>(null);
   
   // Follow-up question state
   const [followUpQuestion, setFollowUpQuestion] = useState<string>("");
@@ -56,8 +57,10 @@ export default function DebatePage() {
             isLoading: false
           }))
         );
+        setApiError(null);
       } catch (error) {
         console.error("Failed to load debaters:", error);
+        setApiError("Failed to load debaters. Please try refreshing the page.");
       }
     };
 
@@ -77,13 +80,16 @@ export default function DebatePage() {
     // Reset research state
     setIsResearching(true);
     setCurrentRound(1);
+    setApiError(null);
     
-    // Update debaters to show loading state
+    // Update debaters to show loading state with staggered messages
     setDebaters(prev => 
-      prev.map(debater => ({
+      prev.map((debater, index) => ({
         ...debater,
         responses: [{ 
-          text: `Researching "${topic}" from ${debater.stance} perspective...`, 
+          text: index === 0 
+            ? `Researching "${topic}" from ${debater.stance} perspective...` 
+            : `Waiting to research "${topic}" from ${debater.stance} perspective${'.'.repeat((index % 3) + 1)}`,
           isLoading: true 
         }],
         isLoading: true
@@ -97,23 +103,51 @@ export default function DebatePage() {
       // Process each debater sequentially to avoid race conditions
       for (let i = 0; i < updatedDebaters.length; i++) {
         const debater = updatedDebaters[i];
-        const response = await debateService.getAIResponse(
-          topic, 
-          debater.id, 
-          debater.stance, 
-          1
-        );
         
-        // Update this specific debater with the response
-        updatedDebaters[i] = {
-          ...debater,
-          responses: [{ 
-            text: response.text, 
-            isLoading: false,
-            sources: response.sources 
-          }],
-          isLoading: false
-        };
+        // Update message to show this debater is currently being processed
+        if (i > 0) {
+          updatedDebaters[i] = {
+            ...debater,
+            responses: [{ 
+              text: `Researching "${topic}" from ${debater.stance} perspective...`, 
+              isLoading: true 
+            }],
+          };
+          setDebaters([...updatedDebaters]);
+        }
+        
+        try {
+          const response = await debateService.getAIResponse(
+            topic, 
+            debater.id, 
+            debater.stance, 
+            1
+          );
+          
+          // Update this specific debater with the response
+          updatedDebaters[i] = {
+            ...debater,
+            responses: [{ 
+              text: response.text, 
+              isLoading: false,
+              sources: response.sources 
+            }],
+            isLoading: false
+          };
+        } catch (debaterError) {
+          console.error(`Error fetching response for ${debater.stance} perspective:`, debaterError);
+          
+          // Update this specific debater with error state
+          updatedDebaters[i] = {
+            ...debater,
+            responses: [{ 
+              text: `Unable to generate a response for the ${debater.stance} perspective. Please try again.`, 
+              isLoading: false,
+              sources: [] 
+            }],
+            isLoading: false
+          };
+        }
         
         // Update state after each debater to show progressive loading
         setDebaters([...updatedDebaters]);
@@ -121,15 +155,20 @@ export default function DebatePage() {
       
       setIsResearching(false);
     } catch (error) {
-      console.error("Error fetching responses:", error);
+      console.error("Error in research process:", error);
       // Reset loading state on error
       setDebaters(prev => 
         prev.map(debater => ({
           ...debater,
-          responses: debater.responses.map(r => ({ ...r, isLoading: false })),
+          responses: debater.responses.map(r => ({ 
+            ...r, 
+            isLoading: false,
+            text: r.isLoading ? 'Failed to load response. Please try again.' : r.text
+          })),
           isLoading: false
         }))
       );
+      setApiError("An error occurred during the debate. Please try again or choose a different topic.");
       setIsResearching(false);
     }
   }, [debaters, getCurrentTopic]);
@@ -140,15 +179,18 @@ export default function DebatePage() {
     
     const topic = getCurrentTopic();
     const nextRound = currentRound + 1;
+    setApiError(null);
     
-    // Add a new loading response to each debater
+    // Add a new loading response to each debater with staggered messages
     setDebaters(prev => 
-      prev.map(debater => ({
+      prev.map((debater, index) => ({
         ...debater,
         responses: [
           ...debater.responses,
           { 
-            text: `Answering follow-up question: "${followUpQuestion}" from ${debater.stance} perspective...`, 
+            text: index === 0
+              ? `Answering follow-up question: "${followUpQuestion}" from ${debater.stance} perspective...`
+              : `Waiting to answer: "${followUpQuestion}" from ${debater.stance} perspective${'.'.repeat((index % 3) + 1)}`,
             isLoading: true 
           }
         ],
@@ -163,26 +205,60 @@ export default function DebatePage() {
       // Process each debater sequentially
       for (let i = 0; i < updatedDebaters.length; i++) {
         const debater = updatedDebaters[i];
-        const response = await debateService.getFollowUpResponse(
-          topic, 
-          debater.id, 
-          debater.stance, 
-          followUpQuestion
-        );
         
-        // Update this specific debater with the new response, preserving previous responses
-        updatedDebaters[i] = {
-          ...debater,
-          responses: [
-            ...debater.responses.slice(0, -1), // All previous complete responses
-            { 
-              text: response.text, 
-              isLoading: false,
-              sources: response.sources 
-            }
-          ],
-          isLoading: false
-        };
+        // Update message to show this debater is currently being processed
+        if (i > 0) {
+          const updatedResponses = [...debater.responses];
+          updatedResponses[updatedResponses.length - 1] = {
+            text: `Answering follow-up question: "${followUpQuestion}" from ${debater.stance} perspective...`,
+            isLoading: true
+          };
+          
+          updatedDebaters[i] = {
+            ...debater,
+            responses: updatedResponses
+          };
+          setDebaters([...updatedDebaters]);
+        }
+        
+        try {
+          const response = await debateService.getFollowUpResponse(
+            topic, 
+            debater.id, 
+            debater.stance, 
+            followUpQuestion
+          );
+          
+          // Update this specific debater with the new response, preserving previous responses
+          updatedDebaters[i] = {
+            ...debater,
+            responses: [
+              ...debater.responses.slice(0, -1), // All previous complete responses
+              { 
+                text: response.text, 
+                isLoading: false,
+                sources: response.sources 
+              }
+            ],
+            isLoading: false
+          };
+        } catch (debaterError) {
+          console.error(`Error fetching follow-up response for ${debater.stance} perspective:`, debaterError);
+          
+          // Update this specific debater with error state but preserve previous responses
+          updatedDebaters[i] = {
+            ...debater,
+            responses: [
+              ...debater.responses.slice(0, -1), // All previous complete responses
+              { 
+                text: `Unable to generate a response to the follow-up question for the ${debater.stance} perspective. Please try again.`, 
+                isLoading: false,
+                sources: [] 
+              }
+            ],
+            isLoading: false
+          };
+        }
         
         // Update state after each debater
         setDebaters([...updatedDebaters]);
@@ -192,19 +268,22 @@ export default function DebatePage() {
       setFollowUpQuestion("");
       setShowFollowUpForm(false);
     } catch (error) {
-      console.error("Error fetching follow-up responses:", error);
+      console.error("Error in follow-up process:", error);
       // Reset loading state on error
       setDebaters(prev => 
         prev.map(debater => ({
           ...debater,
           responses: debater.responses.map((r, idx) => 
-            idx === debater.responses.length - 1 ? { ...r, isLoading: false } : r
+            idx === debater.responses.length - 1
+              ? { ...r, isLoading: false, text: 'Failed to load response. Please try again.' }
+              : r
           ),
           isLoading: false
         }))
       );
+      setApiError("An error occurred while processing your follow-up question. Please try again.");
     }
-  }, [currentRound, debaters, followUpQuestion, getCurrentTopic]);
+  }, [debaters, followUpQuestion, getCurrentTopic, currentRound]);
 
   // Handle starting a new round of research
   const handleNewRound = useCallback(async () => {
@@ -273,6 +352,18 @@ export default function DebatePage() {
       );
     }
   }, [currentRound, debaters, getCurrentTopic]);
+
+  // Add this section near where you render UI elements
+  const renderErrorMessage = () => {
+    if (!apiError) return null;
+    
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mb-6">
+        <p className="font-medium">Error</p>
+        <p>{apiError}</p>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-white relative overflow-hidden">
@@ -365,6 +456,9 @@ export default function DebatePage() {
             />
           </span>
         </motion.h1>
+        
+        {/* Error Message */}
+        {renderErrorMessage()}
         
         {/* Topic Selection Section - Moved to top */}
         <motion.div 

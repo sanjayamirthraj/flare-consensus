@@ -58,7 +58,7 @@ export default function PerspectiveAnimation() {
     if (perspective !== activePerspective && !isAnimating) {
       setIsAnimating(true)
       setActivePerspective(perspective)
-      setTimeout(() => setIsAnimating(false), 600)
+      setTimeout(() => setIsAnimating(false), 1000)
     }
   }
 
