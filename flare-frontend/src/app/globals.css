@@ -417,7 +417,13 @@
   opacity: 0.8;
 }
 
-/* Custom scrollbar styling */
+/* Update the custom scrollbar styling */
+.custom-scrollbar {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(231, 29, 115, 0.2) #f1f1f1;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -443,6 +449,14 @@
   width: 100%;
   max-width: 100%;
   overflow-wrap: break-word;
+  word-break: break-word;
+  padding-bottom: 20px; /* Add some padding at the bottom for better scrolling */
+}
+
+/* Additional styles for specific sections */
+.paper-content section {
+  margin-bottom: 2rem;
+  overflow: visible;
 }
 
 /* Add some print styles */

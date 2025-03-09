@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardHeader, CardTitle } from "@/components/ui/card";
 import { ResearchPaperResponse } from "@/services/debateService";
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { ArrowUp } from 'lucide-react';
 
 interface ResearchPaperProps {
   paperData: ResearchPaperResponse;
@@ -15,15 +15,80 @@ interface ResearchPaperProps {
   topic: string;
 }
 
+// Add an interface for section types to improve navigation
+interface Section {
+  id: string;
+  label: string;
+}
+
+// Define sections for easier navigation
+const sections: Section[] = [
+  { id: 'all', label: 'Full Paper' },
+  { id: 'abstract', label: 'Abstract' },
+  { id: 'introduction', label: 'Introduction' },
+  { id: 'perspectives', label: 'Perspectives' },
+  { id: 'discussion', label: 'Discussion' },
+  { id: 'conclusion', label: 'Conclusion' },
+  { id: 'references', label: 'References' },
+];
+
 export function ResearchPaper({ paperData, isOpen, onClose, topic }: ResearchPaperProps) {
   const [selectedSection, setSelectedSection] = useState<string>("all");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  
+  // Initialize section refs
+  useEffect(() => {
+    // Reset section refs when paper changes
+    sectionRefs.current = sections.reduce((acc, section) => {
+      acc[section.id] = null;
+      return acc;
+    }, {} as Record<string, HTMLElement | null>);
+  }, [paperData]);
   
   // Reset section selection when paper changes
   useEffect(() => {
     setSelectedSection("all");
   }, [paperData]);
+  
+  // Scroll to section when selectedSection changes
+  useEffect(() => {
+    if (selectedSection !== 'all' && sectionRefs.current[selectedSection]) {
+      sectionRefs.current[selectedSection]?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    } else if (selectedSection === 'all' && contentRef.current) {
+      contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [selectedSection]);
+  
+  // Handle scroll events to show/hide scroll-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (contentRef.current) {
+        setShowScrollTop(contentRef.current.scrollTop > 300);
+      }
+    };
+    
+    const contentElement = contentRef.current;
+    if (contentElement) {
+      contentElement.addEventListener('scroll', handleScroll);
+      return () => contentElement.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+  
+  // Scroll to top function
+  const scrollToTop = () => {
+    if (contentRef.current) {
+      contentRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
   
   if (!isOpen) return null;
   
@@ -206,63 +271,18 @@ export function ResearchPaper({ paperData, isOpen, onClose, topic }: ResearchPap
   };
   
   const sectionNav = (
-    <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4 sticky top-0 bg-white z-10">
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`text-sm ${selectedSection === 'all' ? 'bg-[#E71D73]/10 text-[#E71D73] hover:bg-[#E71D73]/20' : 'hover:bg-gray-100'}`}
-        onClick={() => setSelectedSection('all')}
-      >
-        Full Paper
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`text-sm ${selectedSection === 'abstract' ? 'bg-[#E71D73]/10 text-[#E71D73] hover:bg-[#E71D73]/20' : 'hover:bg-gray-100'}`}
-        onClick={() => setSelectedSection('abstract')}
-      >
-        Abstract
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`text-sm ${selectedSection === 'introduction' ? 'bg-[#E71D73]/10 text-[#E71D73] hover:bg-[#E71D73]/20' : 'hover:bg-gray-100'}`}
-        onClick={() => setSelectedSection('introduction')}
-      >
-        Introduction
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`text-sm ${selectedSection === 'perspectives' ? 'bg-[#E71D73]/10 text-[#E71D73] hover:bg-[#E71D73]/20' : 'hover:bg-gray-100'}`}
-        onClick={() => setSelectedSection('perspectives')}
-      >
-        Perspectives
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`text-sm ${selectedSection === 'discussion' ? 'bg-[#E71D73]/10 text-[#E71D73] hover:bg-[#E71D73]/20' : 'hover:bg-gray-100'}`}
-        onClick={() => setSelectedSection('discussion')}
-      >
-        Discussion
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`text-sm ${selectedSection === 'conclusion' ? 'bg-[#E71D73]/10 text-[#E71D73] hover:bg-[#E71D73]/20' : 'hover:bg-gray-100'}`}
-        onClick={() => setSelectedSection('conclusion')}
-      >
-        Conclusion
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`text-sm ${selectedSection === 'references' ? 'bg-[#E71D73]/10 text-[#E71D73] hover:bg-[#E71D73]/20' : 'hover:bg-gray-100'}`}
-        onClick={() => setSelectedSection('references')}
-      >
-        References
-      </Button>
+    <div className="flex flex-wrap gap-2 pb-2">
+      {sections.map((section) => (
+        <Button
+          key={section.id}
+          variant="ghost"
+          size="sm"
+          className={`text-sm ${selectedSection === section.id ? 'bg-[#E71D73]/10 text-[#E71D73] hover:bg-[#E71D73]/20' : 'hover:bg-gray-100'}`}
+          onClick={() => setSelectedSection(section.id)}
+        >
+          {section.label}
+        </Button>
+      ))}
     </div>
   );
   
@@ -271,14 +291,22 @@ export function ResearchPaper({ paperData, isOpen, onClose, topic }: ResearchPap
       return (
         <div className="space-y-8">
           {/* Abstract */}
-          <section className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+          <section 
+            className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm scroll-mt-[120px]"
+            ref={(el) => { sectionRefs.current.abstract = el; }}
+            id="abstract"
+          >
             <h3 className="text-xl font-bold mb-4 text-gray-800">Abstract</h3>
             <div className="text-gray-700">{formatSection(paperData.abstract)}</div>
           </section>
           
           {/* Introduction */}
           {paperData.introduction && (
-            <section className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+            <section 
+              className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm scroll-mt-[120px]"
+              ref={(el) => { sectionRefs.current.introduction = el; }}
+              id="introduction"
+            >
               <h3 className="text-xl font-bold mb-4 text-gray-800">Introduction</h3>
               <div className="text-gray-700">{formatSection(paperData.introduction)}</div>
             </section>
@@ -286,7 +314,11 @@ export function ResearchPaper({ paperData, isOpen, onClose, topic }: ResearchPap
           
           {/* Perspectives */}
           {paperData.perspectives.length > 0 && (
-            <section className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+            <section 
+              className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm scroll-mt-[120px]"
+              ref={(el) => { sectionRefs.current.perspectives = el; }}
+              id="perspectives"
+            >
               <h3 className="text-xl font-bold mb-4 text-gray-800">Perspectives</h3>
               <div className="space-y-6">
                 {paperData.perspectives.map((perspective, index) => (
@@ -301,7 +333,11 @@ export function ResearchPaper({ paperData, isOpen, onClose, topic }: ResearchPap
           
           {/* Discussion */}
           {paperData.discussion && (
-            <section className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+            <section 
+              className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm scroll-mt-[120px]"
+              ref={(el) => { sectionRefs.current.discussion = el; }}
+              id="discussion"
+            >
               <h3 className="text-xl font-bold mb-4 text-gray-800">Discussion</h3>
               <div className="text-gray-700">{formatSection(paperData.discussion)}</div>
             </section>
@@ -309,7 +345,11 @@ export function ResearchPaper({ paperData, isOpen, onClose, topic }: ResearchPap
           
           {/* Conclusion */}
           {paperData.conclusion && (
-            <section className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+            <section 
+              className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm scroll-mt-[120px]"
+              ref={(el) => { sectionRefs.current.conclusion = el; }}
+              id="conclusion"
+            >
               <h3 className="text-xl font-bold mb-4 text-gray-800">Conclusion</h3>
               <div className="text-gray-700">{formatSection(paperData.conclusion)}</div>
             </section>
@@ -317,7 +357,11 @@ export function ResearchPaper({ paperData, isOpen, onClose, topic }: ResearchPap
           
           {/* References */}
           {paperData.references.length > 0 && (
-            <section className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+            <section 
+              className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm scroll-mt-[120px]"
+              ref={(el) => { sectionRefs.current.references = el; }}
+              id="references"
+            >
               <h3 className="text-xl font-bold mb-4 text-gray-800">References</h3>
               <ul className="list-decimal list-inside space-y-2 text-gray-700">
                 {paperData.references.map((reference, index) => (
@@ -331,8 +375,12 @@ export function ResearchPaper({ paperData, isOpen, onClose, topic }: ResearchPap
     }
     
     // Render individual sections
-    const renderSectionContent = (title: string, content: string | string[] | any[]) => (
-      <section className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+    const renderSectionContent = (title: string, content: string | string[] | any[], sectionId: string) => (
+      <section 
+        className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm scroll-mt-[120px]"
+        ref={(el) => { sectionRefs.current[sectionId] = el; }}
+        id={sectionId}
+      >
         <h3 className="text-xl font-bold mb-4 text-gray-800">{title}</h3>
         {Array.isArray(content) && title === "References" ? (
           <ul className="list-decimal list-inside space-y-2 text-gray-700">
@@ -357,17 +405,17 @@ export function ResearchPaper({ paperData, isOpen, onClose, topic }: ResearchPap
     
     switch (selectedSection) {
       case 'abstract':
-        return renderSectionContent("Abstract", paperData.abstract);
+        return renderSectionContent("Abstract", paperData.abstract, "abstract");
       case 'introduction':
-        return renderSectionContent("Introduction", paperData.introduction);
+        return renderSectionContent("Introduction", paperData.introduction, "introduction");
       case 'perspectives':
-        return renderSectionContent("Perspectives", paperData.perspectives);
+        return renderSectionContent("Perspectives", paperData.perspectives, "perspectives");
       case 'discussion':
-        return renderSectionContent("Discussion", paperData.discussion);
+        return renderSectionContent("Discussion", paperData.discussion, "discussion");
       case 'conclusion':
-        return renderSectionContent("Conclusion", paperData.conclusion);
+        return renderSectionContent("Conclusion", paperData.conclusion, "conclusion");
       case 'references':
-        return renderSectionContent("References", paperData.references);
+        return renderSectionContent("References", paperData.references, "references");
       default:
         return null;
     }
@@ -375,65 +423,96 @@ export function ResearchPaper({ paperData, isOpen, onClose, topic }: ResearchPap
   
   return (
     <motion.div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center overflow-hidden p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      onClick={(e) => {
+        // Close when clicking backdrop, but not when clicking the content
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       <motion.div 
-        className="w-full max-w-5xl max-h-[90vh] bg-gray-50 rounded-xl shadow-xl overflow-hidden flex flex-col"
+        className="w-full max-w-5xl h-[90vh] bg-gray-50 rounded-xl shadow-xl flex flex-col overflow-hidden"
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <Card className="border-0 shadow-none h-full flex flex-col">
-          <CardHeader className="border-b pb-4 flex flex-row justify-between items-center bg-white sticky top-0 z-20">
-            <div>
-              <CardTitle className="text-2xl font-bold text-gray-900">
-                {paperData.title || `Research Analysis: ${topic}`}
-              </CardTitle>
-              <p className="text-sm text-gray-500 mt-1">
-                Generated by Flare Consensus • {new Date().toLocaleDateString()}
-              </p>
-            </div>
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={onClose}
-                className="hover:bg-gray-100"
-              >
-                Close
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleExport}
-                disabled={isLoading}
-                className="border-[#E71D73]/30 text-[#E71D73] hover:bg-[#E71D73]/5"
-              >
-                {isLoading ? (
-                  <span className="flex items-center">
-                    <span className="mr-2 inline-block w-2 h-2 bg-[#E71D73] rounded-full animate-ping"></span>
-                    Generating PDF...
-                  </span>
-                ) : (
-                  "Export as PDF"
-                )}
-              </Button>
-            </div>
-          </CardHeader>
+        <div className="flex flex-col h-full w-full">
+          {/* Fixed header */}
+          <div className="border-b bg-white z-30 sticky top-0 shrink-0">
+            <CardHeader className="flex flex-row justify-between items-center pb-4">
+              <div>
+                <CardTitle className="text-2xl font-bold text-gray-900">
+                  {paperData.title || `Research Analysis: ${topic}`}
+                </CardTitle>
+                <p className="text-sm text-gray-500 mt-1">
+                  Generated by Flare Consensus • {new Date().toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={onClose}
+                  className="hover:bg-gray-100"
+                >
+                  Close
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleExport}
+                  disabled={isLoading}
+                  className="border-[#E71D73]/30 text-[#E71D73] hover:bg-[#E71D73]/5"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center">
+                      <span className="mr-2 inline-block w-2 h-2 bg-[#E71D73] rounded-full animate-ping"></span>
+                      Generating PDF...
+                    </span>
+                  ) : (
+                    "Export as PDF"
+                  )}
+                </Button>
+              </div>
+            </CardHeader>
+          </div>
           
-          <CardContent 
-            className="overflow-y-auto flex-grow p-6 custom-scrollbar"
+          {/* Section navigation */}
+          <div className="bg-white z-20 sticky top-[73px] px-6 pt-3 pb-2 border-b shrink-0">
+            {sectionNav}
+          </div>
+          
+          {/* Scrollable content */}
+          <div 
+            className="flex-grow overflow-y-auto custom-scrollbar p-6 relative"
             ref={contentRef}
           >
-            {sectionNav}
             <div className="paper-content">
               {renderContent()}
             </div>
-          </CardContent>
-        </Card>
+            
+            {/* Scroll to top button */}
+            <AnimatePresence>
+              {showScrollTop && (
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  onClick={scrollToTop}
+                  className="fixed bottom-6 right-6 bg-[#E71D73] text-white p-2 rounded-full shadow-lg hover:bg-[#D61A6A] transition-colors z-30"
+                  aria-label="Scroll to top"
+                >
+                  <ArrowUp size={20} />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </motion.div>
     </motion.div>
   );
