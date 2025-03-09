@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Github, ArrowRight, Database, Users, Layers, Brain, Code, Bot, Sparkles } from "lucide-react";
 import PerspectiveAnimation from '@/components/animation';
+import MultiPerspectiveFlow from '@/components/MultiPerspectiveFlow';
 
 export default function Home() {
   return (
@@ -17,14 +18,15 @@ export default function Home() {
           <nav>
             <ul className="flex space-x-6">
               <li><Link href="/" className="text-gray-700 hover:text-[#E71D73] transition-all duration-300">Home</Link></li>
-              <li><Link href="/debate" className="text-gray-700 hover:text-[#E71D73] transition-all duration-300">Debate</Link></li>
+              <li><Link href={"/debate"} className="text-gray-700 hover:text-[#E71D73] transition-all duration-300">Debate</Link></li>
               <li><a href="https://github.com/your-username/flare-consensus" target="_blank" className="text-gray-700 hover:text-[#E71D73] transition-all duration-300 flex items-center"><Github size={16} className="mr-1" /> GitHub</a></li>
             </ul>
           </nav>
         </div>
       </header>
 
-      <section className="container mx-auto px-6 py-12">
+      {/* Hero Section with Main CTA and Interactive Demo */}
+      <section className="container mx-auto px-6 py-12 mb-8">
         <div className="flex flex-col lg:flex-row items-center lg:items-start gap-12">
           <div className="lg:w-1/2 space-y-6 max-w-xl page-transition">
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
@@ -36,7 +38,7 @@ export default function Home() {
             </p>
             <div className="flex flex-wrap gap-4">
               <Button className="bg-[#E71D73] hover:bg-[#d01968] text-white" size="lg" asChild>
-                <Link href="/debate">Try a Debate <ArrowRight className="ml-2" size={16} /></Link>
+                <Link href={"/debate"}>Try a Debate <ArrowRight className="ml-2" size={16} /></Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
                 <a href="https://github.com/your-username/flare-consensus" target="_blank">View Source <Github className="ml-2" size={16} /></a>
@@ -60,14 +62,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Add a divider for visual separation */}
-      <div className="w-full h-16 bg-gradient-to-r from-transparent via-[#E71D73]/10 to-transparent relative">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-24 h-[2px] bg-[#E71D73]/30"></div>
+      {/* How It Works Section with Animation Flow */}
+      <section className="py-16 px-6 bg-gray-50 border-y border-gray-100">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-10">
+            <div className="inline-block px-6 py-2 border border-[#E71D73]/20 rounded-full bg-white shadow-sm mb-4">
+              <h5 className="text-[#E71D73] flex items-center justify-center font-medium">
+                <Sparkles size={18} className="mr-2" /> HOW IT WORKS
+              </h5>
+            </div>
+            <h2 className="text-3xl font-bold mb-4">Multi-Perspective Analysis System</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Our platform routes debate topics through consensus learning algorithms to provide
+              balanced insights from multiple perspectives.
+            </p>
+          </div>
+          
+          <MultiPerspectiveFlow debateTopic="Should artificial intelligence development be regulated?" />
         </div>
-      </div>
+      </section>
 
-      {/* Updated perspective exploration section with better separation */}
+      {/* Three Perspectives Section */}
       <section className="py-16 px-6 bg-gray-950 border-y border-gray-800 text-white relative overflow-hidden">
         <div className="container mx-auto max-w-4xl relative z-1">
           {/* Enhanced visual header */}
@@ -125,7 +140,7 @@ export default function Home() {
             <p className="text-xl text-gray-300 mb-6">
               Experience how AI can present multiple perspectives on complex topics
             </p>
-            <Link href="/debate">
+            <Link href={"/debate"}>
               <Button className="px-8 py-3 bg-[#E71D73] hover:bg-[#D61A6A] text-white glow-button text-lg">
                 Start Your Own Debate <ArrowRight className="ml-2" size={18} />
               </Button>
@@ -134,6 +149,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Features Section with Terminal Mockup */}
       <section className="container mx-auto px-6 py-16">
         <div className="flex flex-col md:flex-row items-center gap-16">
           <div className="md:w-1/2 page-transition">
@@ -180,7 +196,7 @@ export default function Home() {
               ))}
             </ul>
             
-            <Link href="/debate">
+            <Link href={"/debate"}>
               <Button className="bg-[#E71D73] hover:bg-[#d01968] text-white">
                 Try It Now
               </Button>
@@ -189,8 +205,8 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-6">
+      <footer className="bg-gray-950 text-white pt-16 pb-8 px-6 border-t border-gray-900">
+        <div className="container mx-auto max-w-5xl">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <div className="flex items-center space-x-2">

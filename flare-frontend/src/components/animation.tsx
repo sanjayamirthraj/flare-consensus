@@ -1,7 +1,7 @@
 //@ts-nocheck
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ThumbsUp, ThumbsDown, Scale, CheckCircle, XCircle, AlertCircle } from "lucide-react"
@@ -51,7 +51,9 @@ const perspectives = [
 export default function PerspectiveAnimation() {
   const [activePerspective, setActivePerspective] = useState("neutral")
   const [isAnimating, setIsAnimating] = useState(false)
+  const [isAutoRotating, setIsAutoRotating] = useState(true)
 
+  // Function to handle perspective change
   const handlePerspectiveChange = (perspective) => {
     if (perspective !== activePerspective && !isAnimating) {
       setIsAnimating(true)
@@ -59,6 +61,38 @@ export default function PerspectiveAnimation() {
       setTimeout(() => setIsAnimating(false), 600)
     }
   }
+
+  // Auto-rotation effect
+  useEffect(() => {
+    let rotationTimer;
+    
+    if (isAutoRotating) {
+      rotationTimer = setInterval(() => {
+        // Find current index and calculate next index
+        const currentIndex = perspectives.findIndex(p => p.id === activePerspective);
+        const nextIndex = (currentIndex + 1) % perspectives.length;
+        const nextPerspective = perspectives[nextIndex].id;
+        
+        handlePerspectiveChange(nextPerspective);
+      }, 5000); // Change perspective every 5 seconds
+    }
+    
+    return () => {
+      if (rotationTimer) clearInterval(rotationTimer);
+    };
+  }, [activePerspective, isAnimating, isAutoRotating]);
+
+  // Pause auto-rotation when user interacts
+  const handleManualSelect = (perspective) => {
+    // Temporarily pause auto-rotation
+    setIsAutoRotating(false);
+    
+    // Change the perspective
+    handlePerspectiveChange(perspective);
+    
+    // Resume auto-rotation after a delay
+    setTimeout(() => setIsAutoRotating(true), 10000);
+  };
 
   const activePerspectiveData = perspectives.find((p) => p.id === activePerspective)
 
@@ -71,12 +105,33 @@ export default function PerspectiveAnimation() {
             key={perspective.id}
             variant={perspective.id === activePerspective ? "default" : "outline"}
             className={`px-6 py-2 ${perspective.id === activePerspective ? perspective.color : ""}`}
-            onClick={() => handlePerspectiveChange(perspective.id)}
+            onClick={() => handleManualSelect(perspective.id)}
           >
             <perspective.icon className="mr-2 h-4 w-4" />
             {perspective.title}
           </Button>
         ))}
+      </div>
+
+      {/* Auto-rotation indicator */}
+      <div className="flex justify-center mb-4">
+        <div className="flex items-center gap-1">
+          {perspectives.map((perspective, index) => (
+            <motion.div
+              key={index}
+              className={`h-1.5 rounded-full transition-all ${
+                perspective.id === activePerspective 
+                  ? 'w-8 bg-gradient-to-r from-[#E71D73] to-[#FF6C9F]' 
+                  : 'w-1.5 bg-gray-300'
+              }`}
+              animate={{ 
+                width: perspective.id === activePerspective ? 32 : 6,
+                backgroundColor: perspective.id === activePerspective ? '#E71D73' : '#D1D5DB'
+              }}
+              transition={{ duration: 0.3 }}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Main animation container */}
