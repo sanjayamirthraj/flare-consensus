@@ -49,7 +49,7 @@ const topicContexts: Record<string, string> = {
 
 // API endpoints
 const CHAT_API_ENDPOINT = 'http://localhost/api/routes/chat/';
-const RESEARCH_PAPER_API_ENDPOINT = 'http://localhost/api/routes/chat/research_paper/';
+const RESEARCH_PAPER_API_ENDPOINT = 'http://localhost/api/routes/chat/research_paper';
 
 // Delay function for rate limiting
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
