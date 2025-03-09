@@ -96,7 +96,6 @@ class Settings(BaseSettings):
 
     # OpenRouter Settings
     open_router_base_url: str = "https://openrouter.ai/api/v1"
-    open_router_api_key: str = "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"
     open_router_api_key: str = os.environ["OPENROUTER_API_KEY"]
 
     # Path Settings

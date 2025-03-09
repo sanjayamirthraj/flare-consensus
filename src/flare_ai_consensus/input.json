@@ -1,26 +1,16 @@
 {
     "models": [
         {
-            "id": "google/gemini-2.0-flash-lite-001",
-            "max_tokens": 200,
-            "temperature": 0.7
-        },
-        {
             "id": "google/gemini-2.0-flash-001",
-            "max_tokens": 200,
-            "temperature": 0.7
-        },
-        {
-            "id": "google/gemini-2.0-pro-exp-02-05:free",
-            "max_tokens": 200,
+            "max_tokens": 20000,
             "temperature": 0.7
         }
     ],
     "aggregator": [
         {
             "model": {
-                "id": "google/gemini-2.0-pro-exp-02-05:free",
-                "max_tokens": 200,
+                "id": "google/gemini-2.0-flash-001",
+                "max_tokens": 20000,
                 "temperature": 0.7
             },
             "aggregator_context": [
