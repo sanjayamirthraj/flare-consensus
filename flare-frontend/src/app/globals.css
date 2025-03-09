@@ -416,3 +416,39 @@
 .slow-text-fade {
   opacity: 0.8;
 }
+
+/* Custom scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #E71D73;
+  background-color: rgba(231, 29, 115, 0.2);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(231, 29, 115, 0.4);
+}
+
+/* Keep the paper-content area from overflowing */
+.paper-content {
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+/* Add some print styles */
+@media print {
+  .paper-content {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

@@ -15,6 +15,20 @@ export interface AIDebater {
   model: string;
 }
 
+// New interface for research paper response
+export interface ResearchPaperResponse {
+  title: string;
+  abstract: string;
+  introduction: string;
+  perspectives: {
+    stance: string;
+    content: string;
+  }[];
+  discussion: string;
+  conclusion: string;
+  references: string[];
+}
+
 // Mock data for topics to provide context
 const topicContexts: Record<string, string> = {
   "Is AI a threat to humanity?": 
@@ -33,8 +47,9 @@ const topicContexts: Record<string, string> = {
     "This debate evaluates whether the financial investment in space exploration yields sufficient benefits to humanity. Areas of focus include scientific advancement, technological innovation, resource utilization, national prestige, existential risk mitigation, and opportunity costs. The topic spans economics, science, technology, and ethics."
 };
 
-// API endpoint for chat service
-const API_ENDPOINT = 'http://localhost/api/routes/chat/';
+// API endpoints
+const CHAT_API_ENDPOINT = 'http://localhost/api/routes/chat/';
+const RESEARCH_PAPER_API_ENDPOINT = 'http://localhost/api/routes/chat/research_paper';
 
 // Delay function for rate limiting
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -47,7 +62,7 @@ async function callDebateAPI(systemMessage: string, userMessage: string, retryCo
   try {
     console.log(`Making API call with stance: ${systemMessage.substring(0, 30)}...`);
     
-    const response = await fetch(API_ENDPOINT, {
+    const response = await fetch(CHAT_API_ENDPOINT, {
       method: 'POST',
       headers: {
         'accept': 'application/json',
@@ -88,7 +103,7 @@ async function callDebateAPI(systemMessage: string, userMessage: string, retryCo
   } catch (error) {
     console.error('Failed to call debate API:', error);
     console.error('Request details:', {
-      endpoint: API_ENDPOINT,
+      endpoint: CHAT_API_ENDPOINT,
       systemMessage: systemMessage.substring(0, 100) + '...',
       userMessage
     });
@@ -127,6 +142,14 @@ function generateSystemMessage(topic: string, stance: string): string {
   }
   
   return systemMessage;
+}
+
+// Generate system message for creating a research paper
+function generateResearchPaperSystemMessage(topic: string): string {
+  return `Generate a comprehensive research paper on the topic: "${topic}". 
+  The paper should synthesize multiple perspectives in an academic format, with an abstract, introduction, 
+  analysis of different viewpoints, discussion, conclusion, and references. 
+  Maintain an objective, scholarly tone throughout the paper.`;
 }
 
 // Export the debate service
@@ -196,6 +219,65 @@ export const debateService = {
     }
   },
   
+  // Generate a research paper from debate perspectives
+  async generateResearchPaper(topic: string, debaterResponses: {name: string, stance: string, responses: {text: string}[]}[]): Promise<ResearchPaperResponse> {
+    const systemMessage = generateResearchPaperSystemMessage(topic);
+    
+    // Prepare the perspectives for the API
+    const perspectives = debaterResponses.map(debater => {
+      // Combine all responses into a single content string
+      const content = debater.responses.map((response, idx) => 
+        `Response ${idx + 1}: ${response.text}`
+      ).join('\n\n');
+      
+      return {
+        stance: debater.name + " (" + debater.stance + ")",
+        content
+      };
+    });
+    
+    try {
+      console.log('Generating research paper from debate data...');
+      
+      // Use the new research paper specific endpoint
+      const response = await fetch(RESEARCH_PAPER_API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          topic,
+          perspectives,
+          system_message: systemMessage
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      const apiResponse = data.response;
+      
+      // Parse the response into structured sections
+      const sections = parsePaperResponse(apiResponse, topic);
+      
+      return sections;
+    } catch (error) {
+      console.error(`Error generating research paper for ${topic}:`, error);
+      return {
+        title: `Research Analysis: ${topic}`,
+        abstract: "Error generating paper. Please try again later.",
+        introduction: "",
+        perspectives: [],
+        discussion: "",
+        conclusion: "",
+        references: []
+      };
+    }
+  },
+  
   // Get all available AI debaters
   async getAvailableDebaters(): Promise<AIDebater[]> {
     // This would typically come from an API, but for simplicity we'll return static data
@@ -206,4 +288,70 @@ export const debateService = {
     ];
   }
 }; 
+
+// Helper function to parse the API response into structured paper sections
+function parsePaperResponse(response: string, topic: string): ResearchPaperResponse {
+  // Default structure if we can't parse properly
+  const defaultPaper: ResearchPaperResponse = {
+    title: `Research Analysis: ${topic}`,
+    abstract: extractSection(response, "Abstract") || "This paper examines multiple perspectives on the topic.",
+    introduction: extractSection(response, "Introduction") || "",
+    perspectives: [],
+    discussion: extractSection(response, "Discussion") || "",
+    conclusion: extractSection(response, "Conclusion") || "",
+    references: []
+  };
+  
+  // Try to extract perspectives sections
+  const forContent = extractSection(response, "Supporting Perspective") || 
+                     extractSection(response, "For Perspective") || 
+                     extractSection(response, "Argument For");
+                     
+  const againstContent = extractSection(response, "Opposing Perspective") || 
+                         extractSection(response, "Against Perspective") || 
+                         extractSection(response, "Argument Against");
+                         
+  const neutralContent = extractSection(response, "Neutral Perspective") || 
+                         extractSection(response, "Balanced Perspective") || 
+                         extractSection(response, "Alternative Viewpoints");
+  
+  // Add any perspectives we found
+  if (forContent) {
+    defaultPaper.perspectives.push({ stance: "For", content: forContent });
+  }
+  
+  if (againstContent) {
+    defaultPaper.perspectives.push({ stance: "Against", content: againstContent });
+  }
+  
+  if (neutralContent) {
+    defaultPaper.perspectives.push({ stance: "Neutral", content: neutralContent });
+  }
+  
+  // Extract references if available
+  const refsSection = extractSection(response, "References") || 
+                     extractSection(response, "Bibliography") || "";
+  
+  if (refsSection) {
+    // Split by newlines and filter out empty lines
+    defaultPaper.references = refsSection
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+  }
+  
+  return defaultPaper;
+}
+
+// Helper to extract a section from the response text
+function extractSection(text: string, sectionName: string): string | null {
+  const regex = new RegExp(`(#{1,3}\\s*${sectionName}|\\*\\*${sectionName}\\*\\*|${sectionName}:)([\\s\\S]*?)(?=(#{1,3}\\s*|\\*\\*|\\d+\\.\\s*\\*\\*|$))`, 'i');
+  const match = text.match(regex);
+  
+  if (match && match[2]) {
+    return match[2].trim();
+  }
+  
+  return null;
+} 
  

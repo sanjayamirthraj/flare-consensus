@@ -9,6 +9,7 @@ import { DebateContext } from "@/components/debate/DebateContext";
 import { debateService, AIDebater as AIDebaterType } from "@/services/debateService";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ResearchPaper } from "@/components/debate/ResearchPaper";
 
 const predefinedTopics = [
   "Is AI a threat to humanity?",
@@ -45,6 +46,11 @@ export default function DebatePage() {
   const [followUpQuestion, setFollowUpQuestion] = useState<string>("");
   const [showFollowUpForm, setShowFollowUpForm] = useState<boolean>(false);
   
+  // Research paper state
+  const [researchPaper, setResearchPaper] = useState<any>(null);
+  const [isGeneratingPaper, setIsGeneratingPaper] = useState<boolean>(false);
+  const [showResearchPaper, setShowResearchPaper] = useState<boolean>(false);
+
   // Effect to load debaters on mount - this only happens once
   useEffect(() => {
     const loadDebaters = async () => {
@@ -415,6 +421,33 @@ export default function DebatePage() {
     }
   }, [debaters, followUpQuestion, getCurrentTopic, currentRound]);
 
+  // Handle generation of research paper
+  const handleGenerateResearchPaper = useCallback(async () => {
+    if (!getCurrentTopic() || isGeneratingPaper || isResearching) return;
+    
+    setIsGeneratingPaper(true);
+    
+    try {
+      // Create a formatted version of debater responses to pass to the service
+      const debaterResponses = debaters.map(debater => ({
+        name: debater.name,
+        stance: debater.stance,
+        responses: debater.responses.map(r => ({ text: r.text }))
+      }));
+      
+      // Call the debate service to generate the research paper
+      const paper = await debateService.generateResearchPaper(getCurrentTopic(), debaterResponses);
+      
+      setResearchPaper(paper);
+      setShowResearchPaper(true);
+    } catch (error) {
+      console.error("Failed to generate research paper:", error);
+      // Could add an error toast notification here
+    } finally {
+      setIsGeneratingPaper(false);
+    }
+  }, [debaters, getCurrentTopic, isGeneratingPaper, isResearching]);
+
   // Add this section near where you render UI elements
   const renderErrorMessage = () => {
     if (!apiError) return null;
@@ -778,22 +811,29 @@ export default function DebatePage() {
                     whileTap={{ scale: 0.95 }}
                     className="relative"
                   >
-                    <span className="absolute inset-0 rounded-md bg-[#E71D73]/20 -z-10 filter blur-md" />
+                    <span className="absolute inset-0 rounded-md bg-[#2070E7]/10 -z-10 filter blur-md" />
                     <Button 
-                      onClick={handleNewRound}
-                      disabled={isResearching}
-                      className="bg-[#E71D73] hover:bg-[#D61A6A] text-white glow-button px-6"
+                      variant="outline" 
+                      onClick={handleGenerateResearchPaper}
+                      disabled={isResearching || isGeneratingPaper}
+                      className="border-[#2070E7]/30 text-[#2070E7] hover:bg-[#2070E7]/5 hover:border-[#2070E7] px-6 relative overflow-hidden group"
                     >
-                      <span className="mr-2">
-                        <motion.span
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                          className="inline-block"
-                        >
-                          🔄
-                        </motion.span>
-                      </span> 
-                      Next Round
+                      <motion.span 
+                        className="absolute inset-0 bg-[#2070E7]/5 -z-10"
+                        initial={{ y: "100%" }}
+                        whileHover={{ y: "0%" }}
+                        transition={{ duration: 0.2 }}
+                      />
+                      {isGeneratingPaper ? (
+                        <span className="flex items-center">
+                          <span className="mr-2 inline-block w-2 h-2 bg-white rounded-full animate-ping"></span>
+                          Generating...
+                        </span>
+                      ) : (
+                        <>
+                          <span className="mr-2">📝</span> Generate Research Paper
+                        </>
+                      )}
                     </Button>
                   </motion.div>
                 </div>
@@ -859,6 +899,16 @@ export default function DebatePage() {
           <p>© {new Date().getFullYear()} <span className="text-[#E71D73]">Flare Consensus</span> • AI-Powered Debate Platform</p>
         </div>
       </footer>
+
+      {/* Add Research Paper Component */}
+      {researchPaper && (
+        <ResearchPaper 
+          paperData={researchPaper}
+          isOpen={showResearchPaper}
+          onClose={() => setShowResearchPaper(false)}
+          topic={getCurrentTopic()}
+        />
+      )}
     </div>
   );
 } 
