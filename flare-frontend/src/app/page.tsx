@@ -18,7 +18,7 @@ export default function Home() {
             <ul className="flex space-x-6">
               <li><Link href="/" className="text-gray-700 hover:text-[#E71D73] transition-all duration-300">Home</Link></li>
               <li><Link href={"/debate"} className="text-gray-700 hover:text-[#E71D73] transition-all duration-300">Research</Link></li>
-              <li><a href="https://github.com/BabyChouSr/flare-consensus/commits/main/" target="_blank" className="text-gray-700 hover:text-[#E71D73] transition-all duration-300 flex items-center"><Github size={16} className="mr-1" /> GitHub</a></li>
+              <li><a href="https://github.com/sanjayamirthraj/flare-consensus/commits/main/" target="_blank" className="text-gray-700 hover:text-[#E71D73] transition-all duration-300 flex items-center"><Github size={16} className="mr-1" /> GitHub</a></li>
             </ul>
           </nav>
         </div>
@@ -40,7 +40,7 @@ export default function Home() {
                 <Link href={"/debate"}>Try a Research Topic <ArrowRight className="ml-2" size={16} /></Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <a href="https://github.com/BabyChouSr/flare-consensus/commits/main/" target="_blank">View Source <Github className="ml-2" size={16} /></a>
+                <a href="https://github.com/sanjayamirthraj/flare-consensus/commits/main/" target="_blank">View Source <Github className="ml-2" size={16} /></a>
               </Button>
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function Home() {
             </div>
             
             <div className="flex space-x-6">
-              <a href="https://github.com/BabyChouSr/flare-consensus/commits/main/" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://github.com/sanjayamirthraj/flare-consensus/commits/main/" className="text-gray-400 hover:text-white transition-colors">
                 <Github size={20} />
               </a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
